@@ -16,8 +16,7 @@ import {
   CreditCard,
   RefreshCcw,
   ArrowUpRight,
-  ArrowDownRight,
-  Calendar
+  ArrowDownRight
 } from "lucide-react"
 import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
@@ -88,10 +87,6 @@ export default function GiftDashboard() {
           <p className="text-muted-foreground">监控平台礼物模块的实时销售与运营指标。</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Calendar className="mr-2 h-4 w-4" />
-            日期筛选
-          </Button>
           <Button variant="default" size="sm" className="bg-[#C82829] hover:bg-[#B22222]">
             导出报表
           </Button>

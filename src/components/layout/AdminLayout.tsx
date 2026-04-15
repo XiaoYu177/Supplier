@@ -38,6 +38,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       logistics: "打包发货",
       refunds: "售后管理",
       finance: "财务对账",
+      coupons: "优惠管理",
       list: "用户列表",
       benefits: "权益管理",
       hotels: "住宿管理",

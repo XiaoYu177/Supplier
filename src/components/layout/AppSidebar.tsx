@@ -11,9 +11,8 @@ import {
   ChevronRight,
   LogOut,
   User,
-  Search,
 } from "lucide-react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 
 import {
   Sidebar,
@@ -37,6 +36,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible"
+import adminAvatar from "@/src/assets/admin-avatar.jpg"
+import { useAuth } from "@/src/context/AuthContext"
 
 const menuItems = [
   {
@@ -62,13 +63,14 @@ const menuItems = [
       { title: "数据看板", url: "/gifts/dashboard" },
       { title: "商品管理", url: "/gifts/products" },
       { title: "新增商品", url: "/gifts/products/add" },
-      { title: "分类管理", url: "/gifts/categories" },
+      { title: "优惠管理", url: "/gifts/coupons" },
       { title: "礼物推荐", url: "/gifts/recommendations" },
-      { title: "供应商管理", url: "/gifts/suppliers" },
       { title: "订单管理", url: "/gifts/orders" },
       { title: "打包发货", url: "/gifts/logistics" },
       { title: "售后管理", url: "/gifts/refunds" },
       { title: "财务对账", url: "/gifts/finance" },
+      { title: "分类管理", url: "/gifts/categories" },
+      { title: "供应商管理", url: "/gifts/suppliers" },
     ],
   },
   {
@@ -95,6 +97,13 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { logout, user } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    navigate("/login", { replace: true })
+  }
 
   return (
     <Sidebar variant="inset">
@@ -166,12 +175,18 @@ export function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton size="lg" className="hover:bg-sidebar-accent rounded-xl p-2 h-14">
               <Avatar className="h-10 w-10 rounded-lg shadow-sm">
-                <AvatarImage src="https://picsum.photos/seed/admin/40/40" alt="Admin" />
-                <AvatarFallback className="bg-primary text-white">AD</AvatarFallback>
+                <AvatarImage src={adminAvatar} alt="管理员头像" />
+                <AvatarFallback className="bg-primary text-white">
+                  {user?.displayName.slice(0, 1) || "管"}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight ml-2">
-                <span className="truncate font-bold text-base text-[#1F1A1A]">管理员</span>
-                <span className="truncate text-xs text-[#8F8787]">admin@jingcaiyou.com</span>
+                <span className="truncate font-bold text-base text-[#1F1A1A]">
+                  {user?.displayName || "管理员"}
+                </span>
+                <span className="truncate text-xs text-[#8F8787]">
+                  {user?.account || "admin@jingcaiyou.com"}
+                </span>
               </div>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -180,7 +195,7 @@ export function AppSidebar() {
               <User className="mr-2 h-4 w-4" />
               个人中心
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               退出登录
             </DropdownMenuItem>

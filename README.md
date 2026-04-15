@@ -1,20 +1,44 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 竞彩Tour后台管理系统
 
-# Run and deploy your AI Studio app
+## 项目背景
 
-This contains everything you need to run your app locally.
+竞彩Tour后台管理系统是一个专为旅游平台设计的管理后台，包含管理端和供应商端两大模块。管理端提供礼品管理、活动管理等核心功能，供应商端为供应商提供订单管理、财务对账、退款处理、物流配送等一站式服务。
 
-View your app in AI Studio: https://ai.studio/apps/fe19d8c7-9b0b-4b3a-ac5f-53b6252a5f54
+## 技术栈
 
-## Run Locally
+### 前端框架
+- **React 19** - UI框架
+- **TypeScript** - 类型安全
+- **Vite 6** - 构建工具
 
-**Prerequisites:**  Node.js
+### 路由与状态
+- **React Router DOM 7** - 页面路由
+- **Context API** - 状态管理（认证、Toast提示）
 
+### UI组件
+- **Tailwind CSS 4** - 原子化CSS
+- **shadcn/ui** - 高质量UI组件库
+- **Radix UI** - 无样式组件
+- **Lucide React** - 图标库
+- **Tailwind CSS Animations** - 交互动画
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 数据可视化
+- **Recharts** - 图表库
+
+### 其他
+- **date-fns** - 日期处理
+- **xlsx** - Excel导出
+- **Motion** - 动画库
+- **Google Gen AI** - AI集成
+
+## 运行项目
+
+```bash
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+```
+
+访问 http://localhost:3000 查看项目。

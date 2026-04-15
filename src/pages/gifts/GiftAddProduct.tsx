@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
 import {
   Select,
   SelectContent,
@@ -19,8 +20,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft, Plus, Trash2, Save, X, Upload, Image as ImageIcon } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { ChevronLeft, Plus, Trash2, Save, X, Upload, Image as ImageIcon, AlertCircle } from "lucide-react"
+import { useNavigate, useParams } from "react-router-dom"
 
 interface SKU {
   id: string
@@ -30,9 +31,20 @@ interface SKU {
   supplierId: string
 }
 
-export default function GiftAddProduct() {
+interface ProductFormProps {
+  productId?: string
+  onSuccess?: () => void
+  onCancel?: () => void
+  isModal?: boolean
+}
+
+export function ProductForm({ productId, onSuccess, onCancel, isModal = false }: ProductFormProps) {
   const navigate = useNavigate()
+  const isEdit = !!productId
+
+  const [productName, setProductName] = useState("")
   const [category, setCategory] = useState<string>("")
+  const [status, setStatus] = useState<"已上架" | "已下架">("已上架")
   const [skus, setSkus] = useState<SKU[]>([
     { id: "1", name: "", price: "", stock: "", supplierId: "" }
   ])
@@ -40,15 +52,30 @@ export default function GiftAddProduct() {
   const [detailImages, setDetailImages] = useState<string[]>([])
   const [highlights, setHighlights] = useState<string[]>([""])
   const [specs, setSpecs] = useState<{ name: string; value: string }[]>([{ name: "", value: "" }])
+  const [description, setDescription] = useState("")
+  const [story, setStory] = useState("")
   const [purchaseGuide, setPurchaseGuide] = useState<string>("支持全国快递配送，满99元免运费，节假日提前备货，3-5个工作日送达")
   
   const [basePrice, setBasePrice] = useState<string>("")
   const [totalStock, setTotalStock] = useState<string>("")
 
+  // 模拟加载编辑数据
+  useEffect(() => {
+    if (isEdit) {
+      // 在实际应用中，这里会调用 API 获取商品详情
+      setProductName(productId === "G001" ? "故宫日历2024" : productId === "G002" ? "天坛祈年殿积木" : "老北京布鞋")
+      setCategory("文创周边")
+      setStatus(productId === "G003" ? "已下架" : "已上架")
+      setSkus([
+        { id: "s1", name: "精装版", price: "98.00", stock: "500", supplierId: "故宫文创旗舰店" },
+        { id: "s2", name: "典藏版", price: "158.00", stock: "200", supplierId: "故宫文创旗舰店" }
+      ])
+      setMainImage(`https://picsum.photos/seed/${productId}/400/400`)
+    }
+  }, [productId, isEdit])
+
   // 自动计算一口价和总库存
   useEffect(() => {
-    // 只有当 SKU 有数据时才自动计算，避免覆盖用户可能的手动输入（如果用户正在输入）
-    // 或者我们可以认为 SKU 是数据源，变动即更新
     const prices = skus
       .map(sku => parseFloat(sku.price))
       .filter(price => !isNaN(price))
@@ -134,6 +161,378 @@ export default function GiftAddProduct() {
     setSpecs(newSpecs)
   }
 
+  const handleSave = () => {
+    // 模拟保存逻辑
+    if (onSuccess) onSuccess()
+    else navigate("/gifts/products")
+  }
+
+  const content = (
+    <div className="grid gap-6 lg:grid-cols-3">
+      <div className="lg:col-span-2 space-y-6">
+        <Card className="border-none shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg">基础信息</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">商品名称</Label>
+                <Input 
+                  id="name" 
+                  placeholder="请输入商品名称" 
+                  className="border-[#EBE5E5]" 
+                  value={productName}
+                  onChange={(e) => setProductName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">商品分类</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="border-[#EBE5E5] w-full">
+                    <SelectValue placeholder="选择分类" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="文创周边">文创周边</SelectItem>
+                    <SelectItem value="特色美食">特色美食</SelectItem>
+                    <SelectItem value="服饰箱包">服饰箱包</SelectItem>
+                    <SelectItem value="其他">其他</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>商品主图</Label>
+                <span className="text-[10px] text-muted-foreground">建议 800×800，支持 JPG/PNG，最多 5 张</span>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {mainImage ? (
+                  <div className="relative w-32 h-32 rounded-lg border border-[#EBE5E5] overflow-hidden group">
+                    <img src={mainImage} alt="Main" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Button variant="ghost" size="icon" className="text-white" onClick={() => setMainImage(null)}>
+                        <Trash2 className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-[#EBE5E5] rounded-lg cursor-pointer hover:bg-[#F9F8F7] transition-colors">
+                    <Upload className="h-6 w-6 text-[#8F8787] mb-2" />
+                    <span className="text-xs text-[#8F8787]">上传主图</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={handleMainImageUpload} />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>商品亮点</Label>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={addHighlight}
+                  className="h-7 text-xs text-[#C82829] border-[#C82829]/20 hover:bg-[#FFF3F3]"
+                >
+                  <Plus className="mr-1 h-3 w-3" /> 添加亮点
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {highlights.map((highlight, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input 
+                      placeholder="如：非遗工艺、纯手工制作" 
+                      className="border-[#EBE5E5]" 
+                      value={highlight}
+                      onChange={(e) => updateHighlight(index, e.target.value)}
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-destructive shrink-0"
+                      onClick={() => removeHighlight(index)}
+                      disabled={highlights.length === 1}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>规格参数</Label>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={addSpec}
+                  className="h-7 text-xs text-[#C82829] border-[#C82829]/20 hover:bg-[#FFF3F3]"
+                >
+                  <Plus className="mr-1 h-3 w-3" /> 添加参数
+                </Button>
+              </div>
+              <div className="rounded-lg border border-[#EBE5E5] overflow-hidden">
+                <Table>
+                  <TableHeader className="bg-[#F9F8F7]">
+                    <TableRow className="hover:bg-transparent border-[#EBE5E5]">
+                      <TableHead className="text-xs">参数名称</TableHead>
+                      <TableHead className="text-xs">参数说明</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {specs.map((spec, index) => (
+                      <TableRow key={index} className="border-[#EBE5E5]">
+                        <TableCell className="p-3">
+                          <Input 
+                            className="h-9 text-sm border-[#EBE5E5]" 
+                            placeholder="如：材质" 
+                            value={spec.name}
+                            onChange={(e) => updateSpec(index, "name", e.target.value)}
+                          />
+                        </TableCell>
+                        <TableCell className="p-3">
+                          <Input 
+                            className="h-9 text-sm border-[#EBE5E5]" 
+                            placeholder="如：陶瓷" 
+                            value={spec.value}
+                            onChange={(e) => updateSpec(index, "value", e.target.value)}
+                          />
+                        </TableCell>
+                        <TableCell className="p-3">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-9 w-9 text-destructive hover:bg-red-50"
+                            onClick={() => removeSpec(index)}
+                            disabled={specs.length === 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>商品详情图</Label>
+                <span className="text-[10px] text-muted-foreground">最多 10 张，展示商品详细信息</span>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {detailImages.map((url, index) => (
+                  <div key={index} className="relative w-32 h-32 rounded-lg border border-[#EBE5E5] overflow-hidden group">
+                    <img src={url} alt={`Detail ${index}`} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Button variant="ghost" size="icon" className="text-white" onClick={() => removeDetailImage(index)}>
+                        <Trash2 className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-[#EBE5E5] rounded-lg cursor-pointer hover:bg-[#F9F8F7] transition-colors">
+                  <Plus className="h-6 w-6 text-[#8F8787] mb-2" />
+                  <span className="text-xs text-[#8F8787]">添加详情图</span>
+                  <input type="file" className="hidden" accept="image/*" multiple onChange={handleDetailImageUpload} />
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">商品详情描述</Label>
+              <Textarea 
+                id="description" 
+                placeholder="请输入商品详细描述内容" 
+                className="min-h-[150px] border-[#EBE5E5] resize-none" 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="story">文化故事</Label>
+              <Textarea 
+                id="story" 
+                placeholder="请输入商品背后的文化故事、历史渊源等" 
+                className="min-h-[150px] border-[#EBE5E5] resize-none" 
+                value={story}
+                onChange={(e) => setStory(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="guide">购买指南 (配送说明)</Label>
+              <Textarea 
+                id="guide" 
+                placeholder="请输入购买指南、配送时效、售后说明等内容" 
+                className="min-h-[100px] border-[#EBE5E5] resize-none" 
+                value={purchaseGuide}
+                onChange={(e) => setPurchaseGuide(e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg">SKU 规格配置</CardTitle>
+            <Button variant="outline" size="sm" onClick={addSku} className="text-[#C82829] border-[#C82829]/20 hover:bg-[#FFF3F3]">
+              <Plus className="mr-1 h-3 w-3" /> 添加规格
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg border border-[#EBE5E5] overflow-hidden">
+              <Table>
+                <TableHeader className="bg-[#F9F8F7]">
+                  <TableRow className="hover:bg-transparent border-[#EBE5E5]">
+                    <TableHead className="text-xs">规格名称</TableHead>
+                    <TableHead className="text-xs">价格 (¥)</TableHead>
+                    <TableHead className="text-xs">库存</TableHead>
+                    <TableHead className="text-xs">所属供应商</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {skus.map((sku) => (
+                    <TableRow key={sku.id} className="border-[#EBE5E5]">
+                      <TableCell className="p-3">
+                        <Input 
+                          className="h-9 text-sm border-[#EBE5E5]" 
+                          placeholder="如：精装版" 
+                          value={sku.name}
+                          onChange={(e) => updateSku(sku.id, "name", e.target.value)}
+                        />
+                      </TableCell>
+                      <TableCell className="p-3">
+                        <Input 
+                          className="h-9 text-sm border-[#EBE5E5]" 
+                          type="number" 
+                          placeholder="0.00" 
+                          value={sku.price}
+                          onChange={(e) => updateSku(sku.id, "price", e.target.value)}
+                        />
+                      </TableCell>
+                      <TableCell className="p-3">
+                        <Input 
+                          className="h-9 text-sm border-[#EBE5E5]" 
+                          type="number" 
+                          placeholder="0" 
+                          value={sku.stock}
+                          onChange={(e) => updateSku(sku.id, "stock", e.target.value)}
+                        />
+                      </TableCell>
+                      <TableCell className="p-3">
+                        <Select value={sku.supplierId} onValueChange={(val) => updateSku(sku.id, "supplierId", val)}>
+                          <SelectTrigger className="h-9 text-sm border-[#EBE5E5] w-full">
+                            <SelectValue placeholder="选择供应商" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="故宫文创旗舰店">故宫文创旗舰店</SelectItem>
+                            <SelectItem value="北京礼物官方店">北京礼物官方店</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="p-3">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-9 w-9 text-destructive hover:bg-red-50"
+                          onClick={() => removeSku(sku.id)}
+                          disabled={skus.length === 1}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="space-y-6">
+        <Card className="border-none shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg">价格与库存概览</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="base-price">一口价 (最低 SKU 价格)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">¥</span>
+                <Input 
+                  id="base-price" 
+                  type="number" 
+                  className="pl-7 border-[#EBE5E5]" 
+                  placeholder="0.00" 
+                  value={basePrice}
+                  onChange={(e) => setBasePrice(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="total-stock">总库存数量</Label>
+              <Input 
+                id="total-stock" 
+                type="number" 
+                className="border-[#EBE5E5]" 
+                placeholder="0" 
+                value={totalStock}
+                onChange={(e) => setTotalStock(e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg">发布设置</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between p-4 bg-[#F9F8F7] rounded-lg border border-[#EBE5E5]">
+              <div className="space-y-0.5">
+                <Label className="text-base">商品上架状态</Label>
+                <p className="text-xs text-muted-foreground">控制商品是否在前端展示售卖</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${status === "已上架" ? "text-[#C82829]" : "text-[#8F8787]"}`}>
+                  {status}
+                </span>
+                <Switch 
+                  checked={status === "已上架"} 
+                  onCheckedChange={(checked) => setStatus(checked ? "已上架" : "已下架")}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              {isModal && (
+                <Button variant="outline" className="flex-1" onClick={onCancel}>
+                  取消
+                </Button>
+              )}
+              <Button className="flex-1 bg-[#C82829] hover:bg-[#B22222] h-12 text-lg" onClick={handleSave}>
+                <Save className="mr-2 h-5 w-5" /> {isEdit ? "保存修改" : "保存并发布"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+
+  if (isModal) {
+    return <div className="p-6">{content}</div>
+  }
+
   return (
     <div className="space-y-6 pb-12">
       <div className="flex items-center justify-between">
@@ -147,338 +546,17 @@ export default function GiftAddProduct() {
             <ChevronLeft className="h-5 w-5 text-[#C82829]" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#1F1A1A]">新增商品</h1>
-            <p className="text-muted-foreground">填写商品详细信息，上传图片并配置 SKU 规格。</p>
+            <h1 className="text-2xl font-bold tracking-tight text-[#1F1A1A]">{isEdit ? "编辑商品" : "新增商品"}</h1>
+            <p className="text-muted-foreground">{isEdit ? "修改商品详细信息、库存状态及 SKU 配置。" : "填写商品详细信息，上传图片并配置 SKU 规格。"}</p>
           </div>
         </div>
       </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">基础信息</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">商品名称</Label>
-                  <Input id="name" placeholder="请输入商品名称" className="border-[#EBE5E5]" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">商品分类</Label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger className="border-[#EBE5E5] w-full">
-                      <SelectValue placeholder="选择分类" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="文创周边">文创周边</SelectItem>
-                      <SelectItem value="特色美食">特色美食</SelectItem>
-                      <SelectItem value="服饰箱包">服饰箱包</SelectItem>
-                      <SelectItem value="其他">其他</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>商品主图</Label>
-                  <span className="text-[10px] text-muted-foreground">建议 800×800，支持 JPG/PNG，最多 5 张</span>
-                </div>
-                <div className="flex flex-wrap gap-4">
-                  {mainImage ? (
-                    <div className="relative w-32 h-32 rounded-lg border border-[#EBE5E5] overflow-hidden group">
-                      <img src={mainImage} alt="Main" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button variant="ghost" size="icon" className="text-white" onClick={() => setMainImage(null)}>
-                          <Trash2 className="h-5 w-5" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-[#EBE5E5] rounded-lg cursor-pointer hover:bg-[#F9F8F7] transition-colors">
-                      <Upload className="h-6 w-6 text-[#8F8787] mb-2" />
-                      <span className="text-xs text-[#8F8787]">上传主图</span>
-                      <input type="file" className="hidden" accept="image/*" onChange={handleMainImageUpload} />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>商品亮点</Label>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={addHighlight}
-                    className="h-7 text-xs text-[#C82829] border-[#C82829]/20 hover:bg-[#FFF3F3]"
-                  >
-                    <Plus className="mr-1 h-3 w-3" /> 添加亮点
-                  </Button>
-                </div>
-                <div className="space-y-3">
-                  {highlights.map((highlight, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input 
-                        placeholder="如：非遗工艺、纯手工制作" 
-                        className="border-[#EBE5E5]" 
-                        value={highlight}
-                        onChange={(e) => updateHighlight(index, e.target.value)}
-                      />
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-destructive shrink-0"
-                        onClick={() => removeHighlight(index)}
-                        disabled={highlights.length === 1}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>规格参数</Label>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={addSpec}
-                    className="h-7 text-xs text-[#C82829] border-[#C82829]/20 hover:bg-[#FFF3F3]"
-                  >
-                    <Plus className="mr-1 h-3 w-3" /> 添加参数
-                  </Button>
-                </div>
-                <div className="rounded-lg border border-[#EBE5E5] overflow-hidden">
-                  <Table>
-                    <TableHeader className="bg-[#F9F8F7]">
-                      <TableRow className="hover:bg-transparent border-[#EBE5E5]">
-                        <TableHead className="text-xs">参数名称</TableHead>
-                        <TableHead className="text-xs">参数说明</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {specs.map((spec, index) => (
-                        <TableRow key={index} className="border-[#EBE5E5]">
-                          <TableCell className="p-3">
-                            <Input 
-                              className="h-9 text-sm border-[#EBE5E5]" 
-                              placeholder="如：材质" 
-                              value={spec.name}
-                              onChange={(e) => updateSpec(index, "name", e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell className="p-3">
-                            <Input 
-                              className="h-9 text-sm border-[#EBE5E5]" 
-                              placeholder="如：陶瓷" 
-                              value={spec.value}
-                              onChange={(e) => updateSpec(index, "value", e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell className="p-3">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-9 w-9 text-destructive hover:bg-red-50"
-                              onClick={() => removeSpec(index)}
-                              disabled={specs.length === 1}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>商品详情图</Label>
-                  <span className="text-[10px] text-muted-foreground">最多 10 张，展示商品详细信息</span>
-                </div>
-                <div className="flex flex-wrap gap-4">
-                  {detailImages.map((url, index) => (
-                    <div key={index} className="relative w-32 h-32 rounded-lg border border-[#EBE5E5] overflow-hidden group">
-                      <img src={url} alt={`Detail ${index}`} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button variant="ghost" size="icon" className="text-white" onClick={() => removeDetailImage(index)}>
-                          <Trash2 className="h-5 w-5" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-[#EBE5E5] rounded-lg cursor-pointer hover:bg-[#F9F8F7] transition-colors">
-                    <Plus className="h-6 w-6 text-[#8F8787] mb-2" />
-                    <span className="text-xs text-[#8F8787]">添加详情图</span>
-                    <input type="file" className="hidden" accept="image/*" multiple onChange={handleDetailImageUpload} />
-                  </label>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">商品详情描述</Label>
-                <Textarea 
-                  id="description" 
-                  placeholder="请输入商品详细描述内容" 
-                  className="min-h-[150px] border-[#EBE5E5] resize-none" 
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="story">文化故事</Label>
-                <Textarea 
-                  id="story" 
-                  placeholder="请输入商品背后的文化故事、历史渊源等" 
-                  className="min-h-[150px] border-[#EBE5E5] resize-none" 
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="guide">购买指南 (配送说明)</Label>
-                <Textarea 
-                  id="guide" 
-                  placeholder="请输入购买指南、配送时效、售后说明等内容" 
-                  className="min-h-[100px] border-[#EBE5E5] resize-none" 
-                  value={purchaseGuide}
-                  onChange={(e) => setPurchaseGuide(e.target.value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">SKU 规格配置</CardTitle>
-              <Button variant="outline" size="sm" onClick={addSku} className="text-[#C82829] border-[#C82829]/20 hover:bg-[#FFF3F3]">
-                <Plus className="mr-1 h-3 w-3" /> 添加规格
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border border-[#EBE5E5] overflow-hidden">
-                <Table>
-                  <TableHeader className="bg-[#F9F8F7]">
-                    <TableRow className="hover:bg-transparent border-[#EBE5E5]">
-                      <TableHead className="text-xs">规格名称</TableHead>
-                      <TableHead className="text-xs">价格 (¥)</TableHead>
-                      <TableHead className="text-xs">库存</TableHead>
-                      <TableHead className="text-xs">所属供应商</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {skus.map((sku) => (
-                      <TableRow key={sku.id} className="border-[#EBE5E5]">
-                        <TableCell className="p-3">
-                          <Input 
-                            className="h-9 text-sm border-[#EBE5E5]" 
-                            placeholder="如：精装版" 
-                            value={sku.name}
-                            onChange={(e) => updateSku(sku.id, "name", e.target.value)}
-                          />
-                        </TableCell>
-                        <TableCell className="p-3">
-                          <Input 
-                            className="h-9 text-sm border-[#EBE5E5]" 
-                            type="number" 
-                            placeholder="0.00" 
-                            value={sku.price}
-                            onChange={(e) => updateSku(sku.id, "price", e.target.value)}
-                          />
-                        </TableCell>
-                        <TableCell className="p-3">
-                          <Input 
-                            className="h-9 text-sm border-[#EBE5E5]" 
-                            type="number" 
-                            placeholder="0" 
-                            value={sku.stock}
-                            onChange={(e) => updateSku(sku.id, "stock", e.target.value)}
-                          />
-                        </TableCell>
-                        <TableCell className="p-3">
-                          <Select value={sku.supplierId} onValueChange={(val) => updateSku(sku.id, "supplierId", val)}>
-                            <SelectTrigger className="h-9 text-sm border-[#EBE5E5] w-full">
-                              <SelectValue placeholder="选择供应商" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="故宫文创旗舰店">故宫文创旗舰店</SelectItem>
-                              <SelectItem value="北京礼物官方店">北京礼物官方店</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell className="p-3">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-9 w-9 text-destructive hover:bg-red-50"
-                            onClick={() => removeSku(sku.id)}
-                            disabled={skus.length === 1}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">价格与库存概览</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="base-price">一口价 (最低 SKU 价格)</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">¥</span>
-                  <Input 
-                    id="base-price" 
-                    type="number" 
-                    className="pl-7 border-[#EBE5E5]" 
-                    placeholder="0.00" 
-                    value={basePrice}
-                    onChange={(e) => setBasePrice(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="total-stock">总库存数量</Label>
-                <Input 
-                  id="total-stock" 
-                  type="number" 
-                  className="border-[#EBE5E5]" 
-                  placeholder="0" 
-                  value={totalStock}
-                  onChange={(e) => setTotalStock(e.target.value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">发布设置</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full bg-[#C82829] hover:bg-[#B22222] h-12 text-lg">
-                <Save className="mr-2 h-5 w-5" /> 保存并发布
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {content}
     </div>
   )
+}
+
+export default function GiftAddProduct() {
+  const { id } = useParams()
+  return <ProductForm productId={id} />
 }

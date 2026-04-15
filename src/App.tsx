@@ -37,6 +37,7 @@ export default function App() {
             <Route path="/gifts/dashboard" element={<GiftDashboard />} />
             <Route path="/gifts/products" element={<GiftProducts />} />
             <Route path="/gifts/products/add" element={<GiftAddProduct />} />
+            <Route path="/gifts/products/edit/:id" element={<GiftAddProduct />} />
             <Route path="/gifts/categories" element={<GiftCategories />} />
             <Route path="/gifts/recommendations" element={<GiftRecommendations />} />
             <Route path="/gifts/suppliers" element={<GiftSuppliers />} />

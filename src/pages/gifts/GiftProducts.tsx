@@ -11,13 +11,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Search, Plus, MoreHorizontal, Edit, Trash2, Power } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Search, Plus, Edit, Trash2, AlertTriangle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Select,
@@ -26,6 +20,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { ProductForm } from "./GiftAddProduct"
 
 const mockProducts = [
   { 
@@ -63,6 +74,11 @@ const mockProducts = [
 export default function GiftProducts() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("全部状态")
+  const [editingProductId, setEditingProductId] = useState<string | null>(null)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  
   const navigate = useNavigate()
 
   const filteredProducts = mockProducts.filter(product => {
@@ -75,6 +91,28 @@ export default function GiftProducts() {
     return matchesSearch && matchesStatus
   })
 
+  const handleEdit = (id: string) => {
+    setEditingProductId(id)
+    setIsEditDialogOpen(true)
+  }
+
+  const handleAdd = () => {
+    setEditingProductId(null)
+    setIsEditDialogOpen(true)
+  }
+
+  const handleDeleteClick = (id: string) => {
+    setDeletingProductId(id)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = () => {
+    // 模拟删除逻辑
+    console.log("Deleting product:", deletingProductId)
+    setIsDeleteDialogOpen(false)
+    setDeletingProductId(null)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -85,7 +123,7 @@ export default function GiftProducts() {
         
         <Button 
           className="bg-[#C82829] hover:bg-[#B22222]"
-          onClick={() => navigate("/gifts/products/add")}
+          onClick={handleAdd}
         >
           <Plus className="mr-2 h-4 w-4" /> 新增商品
         </Button>
@@ -168,24 +206,24 @@ export default function GiftProducts() {
                     </TableCell>
                     <TableCell className="text-[#8F8787] text-sm">{product.createTime}</TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="hover:bg-[#FFF3F3]">
-                            <MoreHorizontal className="h-4 w-4 text-[#5C5454]" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="border-[#EBE5E5]">
-                          <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/gifts/products/add")}>
-                            <Edit className="mr-2 h-4 w-4" /> 编辑商品
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer">
-                            <Power className="mr-2 h-4 w-4" /> {product.status === "已上架" ? "下架" : "上架"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive cursor-pointer">
-                            <Trash2 className="mr-2 h-4 w-4" /> 删除
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 px-3 text-[#C82829] border-[#C82829]/20 hover:bg-[#C82829] hover:text-white transition-all"
+                          onClick={() => handleEdit(product.id)}
+                        >
+                          <Edit className="mr-1 h-3 w-3" /> 编辑
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive hover:bg-red-50"
+                          onClick={() => handleDeleteClick(product.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -194,6 +232,51 @@ export default function GiftProducts() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-[95vw] xl:max-w-7xl h-[90vh] p-0 gap-0 overflow-hidden border-none shadow-2xl flex flex-col">
+          <DialogHeader className="p-6 border-b bg-white shrink-0 flex-none">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Edit className="w-5 h-5 text-[#C82829]" />
+              {editingProductId ? "编辑商品" : "新增商品"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto bg-[#F9F8F7]">
+            <ProductForm 
+              productId={editingProductId || undefined} 
+              isModal={true}
+              onSuccess={() => setIsEditDialogOpen(false)}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 删除确认弹窗 */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="border-none shadow-2xl">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 text-destructive mb-2">
+              <div className="bg-red-100 p-2 rounded-full">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <AlertDialogTitle className="text-xl">确认删除商品？</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base text-[#5C5454]">
+              此操作将永久删除该商品及其关联的 SKU 信息，且无法撤销。请确认是否继续？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel className="border-[#EBE5E5] hover:bg-[#F9F8F7]">取消</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-[#C82829] hover:bg-[#B22222] text-white"
+              onClick={confirmDelete}
+            >
+              确认删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>故宫文创旗舰店供应商后台</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #c82829;
+      --deep-red: #8b0000;
+      --ink: #211c1c;
+      --muted: #716a6a;
+      --line: #ebe5e5;
+      --soft: #f8f6f4;
+      --blue: #1769aa;
+      --green: #2f8f4e;
+      --gold: #b7791f;
+    }
+    body {
+      min-height: 100vh;
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      color: var(--ink);
+      background: #f9f8f7;
+    }
+    button, input, select, textarea { font: inherit; }
+    button {
+      min-height: 36px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 14px;
+      cursor: pointer;
+      font-weight: 700;
+      background: var(--red);
+      color: #fff;
+      transition: background .2s ease, transform .2s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button.secondary {
+      background: #fff;
+      color: var(--red);
+      border: 1px solid var(--line);
+    }
+    button.readonly {
+      cursor: not-allowed;
+      background: #f1eeee;
+      color: #8f8787;
+    }
+    input, select, textarea {
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+    }
+    textarea {
+      min-height: 92px;
+      padding: 10px 12px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(200, 40, 41, .1);
+    }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      background: #f9f8f7;
+    }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: #fff;
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+    }
+    .brand {
+      padding: 22px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--red), var(--deep-red));
+    }
+    .brand h1 { font-size: 17px; line-height: 1.2; }
+    .brand p { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .nav {
+      padding: 16px;
+      display: grid;
+      gap: 8px;
+    }
+    .nav button {
+      width: 100%;
+      justify-content: flex-start;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: transparent;
+      color: #5c5454;
+      text-align: left;
+      font-weight: 600;
+      min-height: 44px;
+    }
+    .nav button.active {
+      background: #fff3f3;
+      color: var(--red);
+    }
+    .nav button span:first-child {
+      width: 22px;
+      text-align: center;
+      color: inherit;
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px;
+      border-top: 1px solid var(--line);
+    }
+    .supplier-profile {
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #fffafa;
+    }
+    .supplier-profile strong {
+      display: block;
+      color: var(--ink);
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    .supplier-profile span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 24px;
+      background: rgba(255,255,255,.94);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(12px);
+    }
+    .topbar .crumb { color: var(--muted); font-size: 14px; }
+    .topbar .user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #fff3f3;
+      color: var(--red);
+      font-weight: 800;
+    }
+    .content {
+      padding: 24px;
+      display: grid;
+      gap: 20px;
+      max-width: 1480px;
+      width: 100%;
+    }
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+    }
+    .page-head h2 { font-size: 26px; }
+    .page-head p {
+      margin-top: 8px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .grid { display: grid; gap: 16px; }
+    .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .two-col { grid-template-columns: 1.35fr .65fr; }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .card.pad { padding: 18px; }
+    .card-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 800;
+    }
+    .card-title small {
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .title-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .title-left .tag { flex: none; }
+    .metric {
+      display: grid;
+      gap: 8px;
+      min-height: 128px;
+    }
+    .metric .label { color: var(--muted); font-size: 14px; }
+    .metric .value { font-size: 30px; font-weight: 800; }
+    .metric .sub { color: var(--green); font-size: 13px; }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .filters input { min-width: 260px; flex: 1; }
+    .toolbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-left: auto;
+    }
+    .selection-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      accent-color: var(--red);
+      vertical-align: middle;
+    }
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      white-space: nowrap;
+      font-size: 14px;
+    }
+    th {
+      background: var(--soft);
+      color: #5c5454;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    tr:hover td { background: #fffdfd; }
+    .check-cell {
+      width: 46px;
+      text-align: center;
+    }
+    .product {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 260px;
+    }
+    .product img {
+      width: 46px;
+      height: 46px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #f1eeee;
+    }
+    .product small, .muted { color: var(--muted); }
+    .sku-list {
+      display: grid;
+      gap: 8px;
+      min-width: 300px;
+    }
+    .sku-item {
+      display: grid;
+      grid-template-columns: minmax(130px, 1fr) 72px 86px;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--soft);
+      color: #4f4747;
+      font-size: 13px;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #f1eeee;
+      color: #655d5d;
+    }
+    .tag.warn { background: #fff4df; color: var(--gold); }
+    .tag.good { background: #eaf7ee; color: var(--green); }
+    .tag.info { background: #eaf4fc; color: var(--blue); }
+    .tag.red { background: #fff3f3; color: var(--red); }
+    .list {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+    .todo {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 8px;
+      background: var(--soft);
+    }
+    .todo strong { font-size: 15px; }
+    .todo span { color: var(--red); font-size: 24px; font-weight: 800; }
+    .view { display: none; }
+    .view.active { display: grid; }
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.32);
+      display: none;
+      place-items: center;
+      padding: 20px;
+      z-index: 20;
+    }
+    .modal-mask.show { display: grid; }
+    .modal {
+      width: min(720px, 100%);
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 28px 90px rgba(0,0,0,.24);
+    }
+    .modal header, .modal footer {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .modal footer {
+      border-top: 1px solid var(--line);
+      border-bottom: 0;
+      justify-content: flex-end;
+    }
+    .modal-body {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+    .field label {
+      font-size: 13px;
+      font-weight: 800;
+      color: #5c5454;
+    }
+    .detail-box {
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .detail-card {
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--soft);
+      line-height: 1.7;
+      font-size: 14px;
+      min-width: 0;
+    }
+    .detail-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+    .amount-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .amount-grid .detail-card strong {
+      color: var(--red);
+      font-size: 20px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 4px;
+      border-radius: 8px;
+      background: var(--soft);
+    }
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      color: var(--muted);
+      box-shadow: none;
+    }
+    .tab-btn.active {
+      background: #fff;
+      color: var(--red);
+      border: 1px solid var(--line);
+    }
+    .tab-panel { display: none; gap: 12px; }
+    .tab-panel.active { display: grid; }
+    .copy-row {
+      display: grid;
+      grid-template-columns: 118px 1fr 44px;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--soft);
+      font-size: 14px;
+    }
+    .copy-row span:first-child {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .copy-btn {
+      min-height: 30px;
+      padding: 0 8px;
+      background: #fff;
+      color: var(--red);
+      border: 1px solid var(--line);
+    }
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      min-width: 220px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #202020;
+      color: #fff;
+      box-shadow: 0 12px 32px rgba(0,0,0,.22);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all .24s ease;
+      z-index: 30;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+      .nav {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .stats, .two-col { grid-template-columns: 1fr; }
+      .topbar { position: static; }
+      .page-head { display: grid; }
+    }
+    @media (max-width: 640px) {
+      .content { padding: 16px; }
+      .topbar { padding: 0 16px; }
+      .nav { grid-template-columns: repeat(2, 1fr); }
+      .filters input, .filters select, .filters button { width: 100%; }
+      .page-head h2 { font-size: 22px; }
+      .detail-grid, .amount-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">宫</div>
+        <div>
+          <h1>供应商后台</h1>
+          <p>故宫文创旗舰店</p>
+        </div>
+      </div>
+      <nav class="nav" id="nav">
+        <button class="active" data-view="dashboard" data-label="数据看板"><span>▦</span>数据看板</button>
+        <button data-view="products" data-label="商品列表"><span>□</span>商品列表</button>
+        <button data-view="orders" data-label="订单列表"><span>◇</span>订单列表</button>
+        <button data-view="shipping" data-label="打包发货"><span>▣</span>打包发货</button>
+        <button data-view="refunds" data-label="售后记录"><span>↺</span>售后记录</button>
+        <button data-view="finance" data-label="财务对账"><span>¥</span>财务对账</button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="supplier-profile">
+          <div class="avatar">故</div>
+          <div>
+            <strong>故宫文创旗舰店</strong>
+            <span>供应商管理员</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="crumb">京彩游 / 故宫文创旗舰店 / <strong id="crumb">数据看板</strong></div>
+        <div class="user">
+          <span id="phoneText">供应商账号</span>
+          <div class="avatar">故</div>
+          <button class="secondary" id="logout">退出</button>
+        </div>
+      </header>
+
+      <section class="content view active" id="dashboard">
+        <div class="page-head">
+          <div>
+            <h2>数据看板</h2>
+            <p>今日经营、履约和结算概览。</p>
+          </div>
+        </div>
+        <div class="grid stats">
+          <div class="card pad metric"><span class="label">待发货订单</span><span class="value" id="dashboardPendingCount">0</span><span class="sub">今日新增 2 单</span></div>
+          <div class="card pad metric"><span class="label">本月成交订单</span><span class="value">856</span><span class="sub">较上月 +8.3%</span></div>
+          <div class="card pad metric"><span class="label">售后中订单</span><span class="value">12</span><span class="sub">较昨日 -2 单</span></div>
+          <div class="card pad metric"><span class="label">本月结算金额</span><span class="value">¥89,230</span><span class="sub">2026年04月</span></div>
+        </div>
+        <div class="grid dashboard-grid">
+          <div class="card">
+            <div class="card-title">最近订单 <button class="secondary" data-jump="orders">查看全部</button></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>订单编号</th><th>商品</th><th>金额</th><th>状态</th><th>下单时间</th></tr></thead>
+                <tbody id="recentRows"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">待处理事项</div>
+            <div class="list">
+              <div class="todo"><strong>待发货订单</strong><span id="todoPendingCount">0</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="content view" id="products">
+        <div class="page-head">
+          <div>
+            <h2>商品列表</h2>
+            <p>查看商品基础信息、多个 SKU、库存和供货价。</p>
+          </div>
+        </div>
+        <div class="card pad filters">
+          <input data-filter="products" placeholder="搜索商品名称 / SKU">
+          <select data-status="products">
+            <option value="">全部状态</option>
+            <option>在售</option>
+            <option>低库存</option>
+            <option>已下架</option>
+          </select>
+        </div>
+        <div class="card table-wrap">
+          <table>
+            <thead><tr><th>商品信息</th><th>SKU 明细</th><th>总库存</th><th>状态</th><th>最近更新</th></tr></thead>
+            <tbody id="productRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="content view" id="orders">
+        <div class="page-head">
+          <div>
+            <h2>订单列表</h2>
+            <p>查看订单商品、收货、支付、物流和售后状态。</p>
+          </div>
+        </div>
+        <div class="card pad filters">
+          <input data-filter="orders" placeholder="搜索订单编号 / 商品 / 收货人">
+          <select data-status="orders">
+            <option value="">全部状态</option>
+            <option>待发货</option>
+            <option>已发货</option>
+            <option>已完成</option>
+            <option>售后中</option>
+          </select>
+        </div>
+        <div class="card table-wrap">
+          <table>
+            <thead><tr><th>订单编号</th><th>商品信息</th><th>数量</th><th>实付金额</th><th>收货人</th><th>状态</th><th>下单时间</th><th>操作</th></tr></thead>
+            <tbody id="orderRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="content view" id="shipping">
+        <div class="page-head">
+          <div>
+            <h2>打包发货</h2>
+            <p>查看物流状态，导出待发货订单，处理订单发货。</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <div class="title-left">
+              <span>打包发货</span>
+              <span class="tag warn" id="shippingTotalBadge">待发货 0 单</span>
+            </div>
+            <small id="shippingSelectedText">已选 0 单</small>
+          </div>
+          <div class="card pad filters">
+            <select data-status="shipping">
+              <option value="">全部订单</option>
+              <option>待发货</option>
+              <option>已发货</option>
+              <option>已完成</option>
+              <option>拒收</option>
+            </select>
+            <input data-filter="shipping" placeholder="搜索订单编号 / 手机号 / 商品名称">
+            <div class="toolbar-actions">
+              <button class="secondary" id="exportPending">导出待发货订单</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="check-cell"><input type="checkbox" id="selectAllShipping" aria-label="全选待发货订单"></th>
+                  <th>订单号</th>
+                  <th>快递单号</th>
+                  <th>快递类型</th>
+                  <th>订单状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="shippingRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="content view" id="refunds">
+        <div class="page-head">
+          <div>
+            <h2>售后记录</h2>
+            <p>查看退货退款申请、商品信息、退款原因和处理进度。</p>
+          </div>
+        </div>
+        <div class="card pad filters">
+          <input data-filter="refunds" placeholder="搜索退款编号 / 订单编号 / 商品">
+          <select data-status="refunds">
+            <option value="">全部状态</option>
+            <option>待确认</option>
+            <option>处理中</option>
+            <option>已同意</option>
+            <option>已拒绝</option>
+          </select>
+        </div>
+        <div class="card table-wrap">
+          <table>
+            <thead><tr><th>退款编号</th><th>原订单</th><th>商品</th><th>金额</th><th>原因</th><th>状态</th><th>申请时间</th><th>操作</th></tr></thead>
+            <tbody id="refundRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="content view" id="finance">
+        <div class="page-head">
+          <div>
+            <h2>财务对账</h2>
+            <p>查看月度结算账单和订单明细。</p>
+          </div>
+        </div>
+        <div class="grid stats">
+          <div class="card pad metric"><span class="label">本月结算金额</span><span class="value">¥89,230</span><span class="sub">2026年04月</span></div>
+          <div class="card pad metric"><span class="label">订单金额</span><span class="value">¥89,230</span><span class="sub">本月完成订单</span></div>
+          <div class="card pad metric"><span class="label">结算订单数</span><span class="value">856</span><span class="sub">已完成订单</span></div>
+          <div class="card pad metric"><span class="label">退款金额</span><span class="value">¥349</span><span class="sub">本月售后退款</span></div>
+        </div>
+        <div class="card pad filters">
+          <input data-filter="finance" placeholder="搜索账单编号 / 结算周期">
+        </div>
+        <div class="card table-wrap">
+          <table>
+            <thead><tr><th>账单编号</th><th>结算周期</th><th>订单数</th><th>订单金额</th><th>退款金额</th><th>结算金额</th><th>生成时间</th><th>操作</th></tr></thead>
+            <tbody id="financeRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-mask" id="modalMask">
+    <div class="modal">
+      <header>
+        <strong id="modalTitle">详情</strong>
+        <button class="secondary" id="modalClose">关闭</button>
+      </header>
+      <div class="modal-body" id="modalBody"></div>
+      <footer id="modalFooter"></footer>
+    </div>
+  </div>
+  <div class="toast" id="toast">已保存</div>
+
+  <script>
+    const productImages = {
+      bookmark: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=180&q=80",
+      scarf: "https://images.unsplash.com/photo-1523381294911-8d3cead13475?auto=format&fit=crop&w=180&q=80",
+      magnet: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=180&q=80",
+      sachet: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=180&q=80"
+    };
+    const products = [
+      { id: "P-GG-001", name: "故宫脊兽书签套装", category: "文具礼品", status: "在售", updated: "2026-04-14 10:30", img: productImages.bookmark, skus: [
+        { name: "全套6枚装", code: "GG-SQ-6", stock: 328, price: "¥80.00" },
+        { name: "单枚随机装", code: "GG-SQ-1", stock: 560, price: "¥18.00" },
+        { name: "礼盒装", code: "GG-SQ-LH", stock: 96, price: "¥128.00" }
+      ] },
+      { id: "P-GG-002", name: "故宫纹样丝巾", category: "服饰配件", status: "低库存", updated: "2026-04-13 16:10", img: productImages.scarf, skus: [
+        { name: "海棠红 200cm x 70cm", code: "GG-SJ-RD", stock: 18, price: "¥199.00" },
+        { name: "孔雀蓝 200cm x 70cm", code: "GG-SJ-BL", stock: 24, price: "¥199.00" }
+      ] },
+      { id: "P-GG-003", name: "宫门瑞兽冰箱贴", category: "家居摆件", status: "在售", updated: "2026-04-12 09:45", img: productImages.magnet, skus: [
+        { name: "4枚/套", code: "GG-BXT-4", stock: 520, price: "¥48.00" },
+        { name: "8枚/套", code: "GG-BXT-8", stock: 260, price: "¥88.00" }
+      ] },
+      { id: "P-GG-004", name: "天坛祈福香囊", category: "香氛香囊", status: "已下架", updated: "2026-04-10 18:20", img: productImages.sachet, skus: [
+        { name: "单枚装", code: "TT-XL-1", stock: 0, price: "¥50.00" },
+        { name: "双枚礼袋装", code: "TT-XL-2", stock: 0, price: "¥92.00" }
+      ] }
+    ];
+    let orders = [
+      { id: "ORD2026041410001", product: "故宫脊兽书签套装", sku: "全套6枚装", qty: 2, amount: "¥160.00", freight: "¥0.00", pay: "微信支付", buyer: "王先生", phone: "139****5678", receiver: "王先生 139****5678", address: "北京市朝阳区建国路88号SOHO现代城A座1201室", status: "待发货", time: "2026-04-14 09:23", note: "请使用礼品包装", itemType: "日用品", itemDetail: "故宫脊兽书签套装 全套6枚装 x2", remark: "礼品包装" },
+      { id: "ORD2026041410008", product: "天坛祈福香囊", sku: "单枚装", qty: 1, amount: "¥50.00", freight: "¥8.00", pay: "支付宝", buyer: "刘女士", phone: "135****2345", receiver: "刘女士 135****2345", address: "北京市海淀区中关村大街27号", status: "待发货", time: "2026-04-14 09:15", note: "无", itemType: "日用品", itemDetail: "天坛祈福香囊 单枚装 x1", remark: "" },
+      { id: "ORD2026041410002", product: "宫门瑞兽冰箱贴", sku: "4枚/套", qty: 1, amount: "¥48.00", freight: "¥0.00", pay: "微信支付", buyer: "李女士", phone: "136****1234", receiver: "李女士 136****1234", address: "北京市西城区西单北大街120号", status: "已发货", time: "2026-04-14 08:45", express: "顺丰速递", waybill: "SF1234567890", shipTime: "2026-04-14 10:20", note: "工作日收货", itemType: "日用品", itemDetail: "宫门瑞兽冰箱贴 4枚/套 x1", remark: "工作日收货", logistics: [
+        { time: "2026-04-14 10:20", place: "北京市东城区故宫文创仓", text: "供应商已发货，快件已揽收" },
+        { time: "2026-04-14 14:05", place: "北京顺丰分拨中心", text: "快件到达分拨中心" },
+        { time: "2026-04-15 08:40", place: "北京市西城区西单营业点", text: "快件派送中" }
+      ] },
+      { id: "ORD2026041310003", product: "故宫脊兽书签套装", sku: "礼盒装", qty: 3, amount: "¥384.00", freight: "¥0.00", pay: "微信支付", buyer: "张先生", phone: "186****7890", receiver: "张先生 186****7890", address: "北京市东城区王府井大街88号", status: "已完成", time: "2026-04-13 16:32", express: "中通快递", waybill: "ZT9876543210", shipTime: "2026-04-13 18:05", note: "公司采购", itemType: "日用品", itemDetail: "故宫脊兽书签套装 礼盒装 x3", remark: "公司采购", logistics: [
+        { time: "2026-04-13 18:05", place: "北京市东城区故宫文创仓", text: "供应商已发货，快件已揽收" },
+        { time: "2026-04-14 09:10", place: "北京中通分拨中心", text: "快件运输中" },
+        { time: "2026-04-14 16:45", place: "北京市东城区王府井大街88号", text: "已签收，本人签收" }
+      ] },
+      { id: "ORD2026041210005", product: "故宫纹样丝巾", sku: "海棠红 200cm x 70cm", qty: 1, amount: "¥199.00", freight: "¥0.00", pay: "支付宝", buyer: "陈先生", phone: "137****8901", receiver: "陈先生 137****8901", address: "北京市石景山区苹果园路12号", status: "拒收", time: "2026-04-12 10:05", express: "圆通快递", waybill: "YT20260412005", shipTime: "2026-04-12 14:40", note: "客户拒收", itemType: "衣物", itemDetail: "故宫纹样丝巾 海棠红 x1", remark: "客户拒收", logistics: [
+        { time: "2026-04-12 14:40", place: "北京市东城区故宫文创仓", text: "供应商已发货，快件已揽收" },
+        { time: "2026-04-13 10:25", place: "北京市石景山区苹果园营业部", text: "快件派送中" },
+        { time: "2026-04-13 12:18", place: "北京市石景山区苹果园路12号", text: "收件人拒收，快件退回" }
+      ] }
+    ];
+    const refunds = [
+      { id: "REF2026041410001", orderId: "ORD2026041210005", product: "故宫纹样丝巾", sku: "海棠红 200cm x 70cm", qty: 1, amount: "¥199.00", reason: "商品破损", status: "待确认", time: "2026-04-14 14:30", buyer: "陈先生 137****8901", type: "退货退款", description: "收到后发现丝巾外包装挤压，商品边角有明显污渍。", progress: "平台客服已受理，等待仓库验收。" },
+      { id: "REF2026041310002", orderId: "ORD2026041010008", product: "天坛祈福香囊", sku: "双枚礼袋装", qty: 2, amount: "¥100.00", reason: "与描述不符", status: "处理中", time: "2026-04-13 09:15", buyer: "刘女士 135****2345", type: "仅退款", description: "用户反馈香型与页面描述不一致。", progress: "平台正在核实举证材料。" },
+      { id: "REF2026041210003", orderId: "ORD2026040910003", product: "宫门瑞兽冰箱贴", sku: "4枚/套", qty: 1, amount: "¥48.00", reason: "错拍多拍", status: "已同意", time: "2026-04-12 16:45", buyer: "李女士 136****1234", type: "仅退款", description: "用户重复下单后申请退款。", progress: "退款已原路返回。" }
+    ];
+    const bills = [
+      { id: "BILL202604", period: "2026年04月", orders: 856, amount: "¥89,230.00", refund: "¥349.00", net: "¥88,881.00", time: "2026-04-01 00:00" },
+      { id: "BILL202603", period: "2026年03月", orders: 1024, amount: "¥105,680.00", refund: "¥780.00", net: "¥104,900.00", time: "2026-03-01 00:00" },
+      { id: "BILL202602", period: "2026年02月", orders: 892, amount: "¥92,450.00", refund: "¥420.00", net: "¥92,030.00", time: "2026-02-01 00:00" }
+    ];
+    let selectedShippingIds = new Set();
+    let defaultShipAddress = "北京市东城区景山前街4号故宫文创仓库";
+
+    const statusClass = (status) => {
+      if (["待发货", "待确认", "低库存"].includes(status)) return "warn";
+      if (["已发货", "处理中"].includes(status)) return "info";
+      if (["已完成", "已同意", "在售"].includes(status)) return "good";
+      if (["售后中", "已下架", "拒收"].includes(status)) return "red";
+      return "";
+    };
+    const productCell = (name, sku, img) => `<div class="product"><img src="${img || productImages.bookmark}" alt="${name}"><div><strong>${name}</strong><br><small>${sku}</small></div></div>`;
+    const tag = (status) => `<span class="tag ${statusClass(status)}">${status}</span>`;
+    const includes = (text, keyword) => text.toLowerCase().includes((keyword || "").trim().toLowerCase());
+    const skuList = (skus) => `<div class="sku-list">${skus.map(sku => `<div class="sku-item"><strong>${sku.name}</strong><span>${sku.stock} 件</span><span>${sku.price}</span></div>`).join("")}</div>`;
+    const copyRow = (label, value) => `<div class="copy-row"><span>${label}</span><strong>${value}</strong><button class="copy-btn" data-copy="${String(value).replace(/"/g, "&quot;")}">复制</button></div>`;
+    const orderDetailHtml = (order) => `
+      <div class="detail-grid">
+        <div class="detail-card"><span>订单编号</span><strong>${order.id}</strong></div>
+        <div class="detail-card"><span>订单状态</span>${tag(order.status)}</div>
+        <div class="detail-card"><span>下单时间</span>${order.time}</div>
+        <div class="detail-card"><span>支付方式</span>${order.pay}</div>
+      </div>
+      <div class="detail-box">${productCell(order.product, `${order.sku} · x${order.qty}`)}</div>
+      <div class="amount-grid">
+        <div class="detail-card"><span>商品金额</span><strong>${order.amount}</strong></div>
+        <div class="detail-card"><span>运费</span><strong>${order.freight}</strong></div>
+        <div class="detail-card"><span>实付金额</span><strong>${order.amount}</strong></div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-card"><span>收货人</span>${order.buyer}<br>${order.phone}</div>
+        <div class="detail-card"><span>收货地址</span>${order.address}</div>
+        <div class="detail-card"><span>物流公司</span>${order.express || "待发货"}</div>
+        <div class="detail-card"><span>运单号</span>${order.waybill || "待填写"}</div>
+      </div>
+      <div class="detail-box"><strong>买家备注</strong><br>${order.note}</div>
+    `;
+
+    function renderProducts() {
+      const keyword = document.querySelector('[data-filter="products"]').value;
+      const status = document.querySelector('[data-status="products"]').value;
+      const rows = products.filter(item => (!keyword || includes(`${item.name}${item.category}${item.id}${item.skus.map(s => `${s.name}${s.code}`).join("")}`, keyword)) && (!status || item.status === status));
+      document.getElementById("productRows").innerHTML = rows.map(item => `
+        <tr>
+          <td>${productCell(item.name, `${item.id} · ${item.category}`, item.img)}</td>
+          <td>${skuList(item.skus)}</td>
+          <td>${item.skus.reduce((sum, sku) => sum + sku.stock, 0)}</td>
+          <td>${tag(item.status)}</td>
+          <td>${item.updated}</td>
+        </tr>`).join("");
+    }
+
+    function renderOrders() {
+      const keyword = document.querySelector('[data-filter="orders"]').value;
+      const status = document.querySelector('[data-status="orders"]').value;
+      const rows = orders.filter(item => (!keyword || includes(`${item.id}${item.product}${item.receiver}`, keyword)) && (!status || item.status === status));
+      document.getElementById("orderRows").innerHTML = rows.map(item => `
+        <tr>
+          <td>${item.id}</td>
+          <td>${productCell(item.product, item.sku)}</td>
+          <td>x${item.qty}</td>
+          <td><strong>${item.amount}</strong></td>
+          <td>${item.receiver}</td>
+          <td>${tag(item.status)}</td>
+          <td>${item.time}</td>
+          <td><button class="secondary" data-detail="${item.id}">详情</button></td>
+        </tr>`).join("");
+      document.getElementById("recentRows").innerHTML = orders.map(item => `
+        <tr><td>${item.id}</td><td>${item.product}</td><td>${item.amount}</td><td>${tag(item.status)}</td><td>${item.time.slice(5)}</td></tr>`).join("");
+    }
+
+    function renderShipping() {
+      const keyword = document.querySelector('[data-filter="shipping"]').value;
+      const status = document.querySelector('[data-status="shipping"]').value;
+      const pending = orders.filter(item => item.status === "待发货");
+      const rows = orders.filter(item => {
+        const matchedStatus = !status || item.status === status;
+        const matchedKeyword = !keyword || includes(`${item.id}${item.phone}${item.product}`, keyword);
+        return matchedStatus && matchedKeyword;
+      });
+      selectedShippingIds = new Set([...selectedShippingIds].filter(id => pending.some(item => item.id === id)));
+      document.getElementById("dashboardPendingCount").textContent = pending.length;
+      document.getElementById("todoPendingCount").textContent = pending.length;
+      document.getElementById("shippingTotalBadge").textContent = `待发货 ${pending.length} 单`;
+      document.getElementById("shippingSelectedText").textContent = `已选 ${selectedShippingIds.size} 单`;
+      const selectAll = document.getElementById("selectAllShipping");
+      const selectableRows = rows.filter(item => item.status === "待发货");
+      selectAll.checked = selectableRows.length > 0 && selectableRows.every(item => selectedShippingIds.has(item.id));
+      selectAll.indeterminate = selectableRows.some(item => selectedShippingIds.has(item.id)) && !selectAll.checked;
+      document.getElementById("shippingRows").innerHTML = rows.map(item => `
+        <tr>
+          <td class="check-cell">${item.status === "待发货" ? `<input type="checkbox" class="shipping-check" data-shipping-check="${item.id}" ${selectedShippingIds.has(item.id) ? "checked" : ""} aria-label="选择订单 ${item.id}">` : ""}</td>
+          <td>${item.id}</td>
+          <td>${item.status === "待发货" ? "" : item.waybill}</td>
+          <td>${item.status === "待发货" ? "" : item.express}</td>
+          <td>${tag(item.status)}</td>
+          <td>
+            <button class="secondary" data-logistics="${item.id}">详情</button>
+            ${item.status === "待发货" ? `<button data-ship="${item.id}">去发货</button>` : ""}
+          </td>
+        </tr>`).join("") || `<tr><td colspan="6" class="muted">暂无匹配订单。</td></tr>`;
+    }
+
+    function renderRefunds() {
+      const keyword = document.querySelector('[data-filter="refunds"]').value;
+      const status = document.querySelector('[data-status="refunds"]').value;
+      const rows = refunds.filter(item => (!keyword || includes(`${item.id}${item.orderId}${item.product}`, keyword)) && (!status || item.status === status));
+      document.getElementById("refundRows").innerHTML = rows.map(item => `
+        <tr>
+          <td>${item.id}</td><td>${item.orderId}</td><td>${item.product}</td><td><strong>${item.amount}</strong></td>
+          <td>${item.reason}</td><td>${tag(item.status)}</td><td>${item.time}</td>
+          <td><button class="secondary" data-refund="${item.id}">详情</button></td>
+        </tr>`).join("");
+    }
+
+    function renderFinance() {
+      const keyword = document.querySelector('[data-filter="finance"]').value;
+      const rows = bills.filter(item => !keyword || includes(`${item.id}${item.period}`, keyword));
+      document.getElementById("financeRows").innerHTML = rows.map(item => `
+        <tr>
+          <td>${item.id}</td><td>${item.period}</td><td>${item.orders}</td><td>${item.amount}</td><td>${item.refund}</td>
+          <td><strong>${item.net}</strong></td><td>${item.time}</td>
+          <td><button class="secondary" data-bill="${item.id}">详情</button></td>
+        </tr>`).join("");
+    }
+
+    function renderAll() {
+      renderProducts();
+      renderOrders();
+      renderShipping();
+      renderRefunds();
+      renderFinance();
+    }
+
+    function switchView(view) {
+      document.querySelectorAll(".view").forEach(el => el.classList.toggle("active", el.id === view));
+      document.querySelectorAll(".nav button").forEach(el => el.classList.toggle("active", el.dataset.view === view));
+      document.getElementById("crumb").textContent = document.querySelector(`[data-view="${view}"]`).dataset.label;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function openModal(title, body, footer = "") {
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalBody").innerHTML = body;
+      document.getElementById("modalFooter").innerHTML = footer || `<button class="secondary" id="modalOk">知道了</button>`;
+      document.getElementById("modalMask").classList.add("show");
+    }
+
+    function closeModal() {
+      document.getElementById("modalMask").classList.remove("show");
+    }
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast("已复制到剪切板。")).catch(() => copyTextFallback(text));
+        return;
+      }
+      copyTextFallback(text);
+    }
+    function copyTextFallback(text) {
+      const input = document.createElement("textarea");
+      input.value = text;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+      showToast("已复制到剪切板。");
+    }
+
+    function openShip(orderId) {
+      const order = orders.find(item => item.id === orderId);
+      if (!order) return;
+      switchView("shipping");
+      openModal("去发货", `
+        <div class="field">
+          <label>发货地址</label>
+          <textarea id="shipAddress">${defaultShipAddress}</textarea>
+        </div>
+        <div class="tabs">
+          <button class="tab-btn active" data-ship-tab="auto">自动检索</button>
+          <button class="tab-btn" data-ship-tab="manual">手工发货</button>
+        </div>
+        <div class="tab-panel active" id="shipTabAuto">
+          ${copyRow("订单号", order.id)}
+          ${copyRow("收件人姓名", order.buyer)}
+          ${copyRow("收件人联系方式", order.phone)}
+          ${copyRow("收件地址", order.address)}
+          ${copyRow("商品信息", order.product)}
+          ${copyRow("规格详细信息", `${order.sku} x${order.qty}`)}
+        </div>
+        <div class="tab-panel" id="shipTabManual">
+          <div class="field"><label>快递公司</label><select id="expressCompany"><option value="">请选择</option><option>菜鸟裹裹</option><option>顺丰快递</option><option>邮政快递</option><option>其他</option></select></div>
+          <div class="field" id="otherExpressField" style="display:none;"><label>其他快递公司</label><input id="otherExpressCompany" placeholder="请输入快递公司"></div>
+          <div class="field"><label>快递单号</label><input id="waybillNo" placeholder="请输入快递单号"></div>
+        </div>
+      `, `<button class="secondary" id="cancelShip">取消</button><button id="confirmShip" data-confirm-ship="${order.id}" style="display:none;">确认</button>`);
+    }
+    function openLogistics(orderId) {
+      const order = orders.find(item => item.id === orderId);
+      if (!order) return;
+      const records = order.logistics || [{ time: order.time, place: "待发货", text: "订单已创建，等待供应商发货" }];
+      openModal("物流详情", `
+        <div class="detail-grid">
+          <div class="detail-card"><span>订单号</span><strong>${order.id}</strong></div>
+          <div class="detail-card"><span>订单状态</span>${tag(order.status)}</div>
+          <div class="detail-card"><span>快递类型</span>${order.express || ""}</div>
+          <div class="detail-card"><span>快递单号</span>${order.waybill || ""}</div>
+        </div>
+        <div class="detail-box"><strong>物流记录</strong><br>${records.map(item => `${item.time}　${item.place}<br>${item.text}`).join("<br><br>")}</div>
+      `);
+    }
+    function exportPendingOrders() {
+      const pending = orders.filter(item => item.status === "待发货");
+      if (!pending.length) {
+        showToast("当前没有待发货订单可导出。");
+        return;
+      }
+      const rows = pending.map((item, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${item.buyer}</td>
+          <td>${item.phone}</td>
+          <td>${item.address}</td>
+          <td>${item.itemType}</td>
+          <td>${item.itemDetail}</td>
+          <td>${item.remark || ""}</td>
+          <td>${item.id}</td>
+        </tr>
+      `).join("");
+      const excel = `
+        <html><head><meta charset="UTF-8"></head><body>
+          <table border="1">
+            <tr>
+              <th>编号（单次最多500包裹）</th>
+              <th>收件人姓名</th>
+              <th>收件人联系方式</th>
+              <th>收件地址</th>
+              <th>物品（在以下6类中选择：日用品、食品、文件、衣物、数码产品、其他）</th>
+              <th>物品详情</th>
+              <th>备注信息</th>
+              <th>外平台单号</th>
+            </tr>
+            ${rows}
+          </table>
+        </body></html>`;
+      const blob = new Blob(["\ufeff" + excel], { type: "application/vnd.ms-excel;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "故宫文创旗舰店-菜鸟裹裹待发货订单.xls";
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast("待发货订单已导出。");
+    }
+
+    document.addEventListener("click", (event) => {
+      const target = event.target.closest("button");
+      if (!target) return;
+      if (target.dataset.view) switchView(target.dataset.view);
+      if (target.dataset.jump) switchView(target.dataset.jump);
+      if (target.dataset.ship) openShip(target.dataset.ship);
+      if (target.id === "exportPending") exportPendingOrders();
+      if (target.dataset.logistics) openLogistics(target.dataset.logistics);
+      if (target.dataset.copy) {
+        copyText(target.dataset.copy);
+      }
+      if (target.dataset.shipTab) {
+        document.querySelectorAll("[data-ship-tab]").forEach(item => item.classList.toggle("active", item.dataset.shipTab === target.dataset.shipTab));
+        document.getElementById("shipTabAuto").classList.toggle("active", target.dataset.shipTab === "auto");
+        document.getElementById("shipTabManual").classList.toggle("active", target.dataset.shipTab === "manual");
+        const confirmButton = document.getElementById("confirmShip");
+        if (confirmButton) confirmButton.style.display = target.dataset.shipTab === "manual" ? "inline-flex" : "none";
+      }
+      if (target.id === "modalClose" || target.id === "modalOk" || target.id === "cancelShip") closeModal();
+      if (target.id === "logout") {
+        localStorage.removeItem("supplierLoggedIn");
+        window.location.href = "login.html";
+      }
+      if (target.dataset.detail) {
+        const order = orders.find(item => item.id === target.dataset.detail);
+        openModal("订单详情", orderDetailHtml(order));
+      }
+      if (target.dataset.refund) {
+        const item = refunds.find(row => row.id === target.dataset.refund);
+        openModal("售后详情", `
+          <div class="detail-grid">
+            <div class="detail-card"><span>退款编号</span><strong>${item.id}</strong></div>
+            <div class="detail-card"><span>原订单编号</span>${item.orderId}</div>
+            <div class="detail-card"><span>售后类型</span>${item.type}</div>
+            <div class="detail-card"><span>处理状态</span>${tag(item.status)}</div>
+          </div>
+          <div class="detail-box">${productCell(item.product, `${item.sku} · x${item.qty}`)}</div>
+          <div class="detail-grid">
+            <div class="detail-card"><span>退款金额</span><strong>${item.amount}</strong></div>
+            <div class="detail-card"><span>申请时间</span>${item.time}</div>
+            <div class="detail-card"><span>买家信息</span>${item.buyer}</div>
+            <div class="detail-card"><span>售后原因</span>${item.reason}</div>
+          </div>
+          <div class="detail-box"><strong>问题描述</strong><br>${item.description}</div>
+          <div class="detail-box"><strong>处理进度</strong><br>${item.progress}</div>
+        `);
+      }
+      if (target.dataset.bill) {
+        const item = bills.find(row => row.id === target.dataset.bill);
+        openModal("账单详情", `
+          <div class="detail-grid">
+            <div class="detail-card"><span>账单编号</span><strong>${item.id}</strong></div>
+            <div class="detail-card"><span>结算周期</span>${item.period}</div>
+            <div class="detail-card"><span>生成时间</span>${item.time}</div>
+            <div class="detail-card"><span>结算订单数</span>${item.orders}</div>
+          </div>
+          <div class="amount-grid">
+            <div class="detail-card"><span>订单金额</span><strong>${item.amount}</strong></div>
+            <div class="detail-card"><span>退款金额</span><strong>${item.refund}</strong></div>
+            <div class="detail-card"><span>结算金额</span><strong>${item.net}</strong></div>
+          </div>
+          <div class="detail-box"><strong>订单明细</strong><br>${orders.filter(order => order.status !== "待发货").map(order => `${order.id} · ${order.product} · ${order.amount} · ${order.status}`).join("<br>")}</div>
+        `);
+      }
+      if (target.dataset.confirmShip) {
+        defaultShipAddress = document.getElementById("shipAddress").value.trim() || defaultShipAddress;
+        const isManual = document.getElementById("shipTabManual").classList.contains("active");
+        if (!isManual) {
+          showToast("已保存发货地址，可复制自动检索信息。");
+          return;
+        }
+        const company = document.getElementById("expressCompany").value;
+        const otherCompany = document.getElementById("otherExpressCompany")?.value.trim();
+        const finalCompany = company === "其他" ? otherCompany : company;
+        const waybill = document.getElementById("waybillNo").value.trim();
+        if (!finalCompany || !waybill) {
+          showToast("请填写快递公司和运单号。");
+          return;
+        }
+        orders = orders.map(item => item.id === target.dataset.confirmShip ? {
+          ...item,
+          status: "已发货",
+          express: finalCompany,
+          waybill,
+          logistics: [
+            { time: new Date().toLocaleString("zh-CN", { hour12: false }), place: defaultShipAddress, text: "供应商已发货，快件已揽收" }
+          ]
+        } : item);
+        selectedShippingIds.delete(target.dataset.confirmShip);
+        closeModal();
+        renderAll();
+        showToast("发货成功，物流信息已同步。");
+      }
+    });
+
+    document.addEventListener("input", (event) => {
+      if (event.target.matches('[data-filter="products"]')) renderProducts();
+      if (event.target.matches('[data-filter="orders"]')) renderOrders();
+      if (event.target.matches('[data-filter="shipping"]')) renderShipping();
+      if (event.target.matches('[data-filter="refunds"]')) renderRefunds();
+      if (event.target.matches('[data-filter="finance"]')) renderFinance();
+    });
+    document.addEventListener("change", (event) => {
+      if (event.target.matches('[data-status="products"]')) renderProducts();
+      if (event.target.matches('[data-status="orders"]')) renderOrders();
+      if (event.target.matches('[data-status="refunds"]')) renderRefunds();
+      if (event.target.matches('[data-status="shipping"]')) renderShipping();
+      if (event.target.id === "expressCompany") {
+        const otherField = document.getElementById("otherExpressField");
+        if (otherField) otherField.style.display = event.target.value === "其他" ? "grid" : "none";
+      }
+      if (event.target.id === "selectAllShipping") {
+        const keyword = document.querySelector('[data-filter="shipping"]').value;
+        const status = document.querySelector('[data-status="shipping"]').value;
+        const visiblePending = orders.filter(item => item.status === "待发货" && (!status || item.status === status) && (!keyword || includes(`${item.id}${item.phone}${item.product}`, keyword)));
+        visiblePending.forEach(item => {
+          if (event.target.checked) selectedShippingIds.add(item.id);
+          else selectedShippingIds.delete(item.id);
+        });
+        renderShipping();
+      }
+      if (event.target.matches("[data-shipping-check]")) {
+        const id = event.target.dataset.shippingCheck;
+        if (event.target.checked) selectedShippingIds.add(id);
+        else selectedShippingIds.delete(id);
+        renderShipping();
+      }
+    });
+
+    if (localStorage.getItem("supplierLoggedIn") !== "true") {
+      window.location.href = "login.html";
+    }
+    const phone = localStorage.getItem("supplierPhone");
+    if (phone) document.getElementById("phoneText").textContent = phone.replace(/(\d{3})\d{4}(\d{4})/, "$1****$2");
+    renderAll();
+  </script>
+</body>
+</html>

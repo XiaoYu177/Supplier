@@ -1,117 +1,91 @@
-import { useState } from "react"
-import { Search, FileText, CheckCircle, Download, Calendar } from "lucide-react"
+import { useMemo, useState } from "react"
+import { Search, Download, Wallet, Circle } from "lucide-react"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
-const bills = [
-  {
-    id: "BILL202604",
-    period: "2026年04月",
-    orderCount: 856,
-    amount: "¥89,230.00",
-    commission: "¥4,461.50",
-    netAmount: "¥84,768.50",
-    status: "待核对",
-    statusVariant: "warning" as const,
-    generateTime: "2026-04-01 00:00",
-  },
-  {
-    id: "BILL202603",
-    period: "2026年03月",
-    orderCount: 1024,
-    amount: "¥105,680.00",
-    commission: "¥5,284.00",
-    netAmount: "¥100,396.00",
-    status: "已核对",
-    statusVariant: "success" as const,
-    generateTime: "2026-03-01 00:00",
-  },
-  {
-    id: "BILL202602",
-    period: "2026年02月",
-    orderCount: 892,
-    amount: "¥92,450.00",
-    commission: "¥4,622.50",
-    netAmount: "¥87,827.50",
-    status: "已核对",
-    statusVariant: "success" as const,
-    generateTime: "2026-02-01 00:00",
-  },
-  {
-    id: "BILL202601",
-    period: "2026年01月",
-    orderCount: 1156,
-    amount: "¥118,920.00",
-    commission: "¥5,946.00",
-    netAmount: "¥112,974.00",
-    status: "已核对",
-    statusVariant: "success" as const,
-    generateTime: "2026-01-01 00:00",
-  },
-]
+type Bill = {
+  id: string
+  period: string
+  orderCount: number
+  billAmount: number
+  supplierSettleAmount: number
+  generateTime: string
+}
 
 const orderDetails = [
   { id: "ORD2026041410001", product: "故宫脊兽书签套装", amount: "¥160.00", status: "已完成" },
   { id: "ORD2026041410002", product: "长城纪念徽章套装", amount: "¥59.00", status: "已完成" },
   { id: "ORD2026041310003", product: "京剧脸谱书签", amount: "¥150.00", status: "已完成" },
-  { id: "ORD2026041310004", product: "北京景点冰箱贴套装", amount: "¥80.00", status: "已完成" },
   { id: "ORD2026041210005", product: "故宫纹样丝巾", amount: "¥199.00", status: "已完成" },
 ]
 
-export default function SupplierFinance() {
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [selectedBill, setSelectedBill] = useState<typeof bills[0] | null>(null)
+const getCurrentMonth = () => {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
+}
 
-  const getStatusBadgeClass = (variant: string) => {
-    switch (variant) {
-      case "warning":
-        return "bg-[#FFF3E0] text-[#F6A018] hover:bg-[#FFF3E0]"
-      case "success":
-        return "bg-[#E8F5E9] text-[#4CAF50] hover:bg-[#E8F5E9]"
-      default:
-        return "bg-[#F1EEEE] text-[#8F8787] hover:bg-[#F1EEEE]"
-    }
+const money = (value: number) => `¥${value.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+const buildWeeklyBills = (monthValue: string): Bill[] => {
+  const [yearText, monthText] = monthValue.split("-")
+  const year = Number(yearText)
+  const month = Number(monthText)
+  const monthStart = new Date(year, month - 1, 1)
+  const monthEnd = new Date(year, month, 0)
+  const daysInMonth = monthEnd.getDate()
+  const monthLabel = `${year}年${String(month).padStart(2, "0")}月`
+
+  const fmt = (day: number) => `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+  const list: Bill[] = []
+  let weekIndex = 1
+
+  for (let day = 1; day <= daysInMonth; day += 7) {
+    const startDay = day
+    const endDay = Math.min(day + 6, daysInMonth)
+    const orderCount = 180 + weekIndex * 24
+    const billAmount = 18000 + weekIndex * 5200
+    const endDate = new Date(monthStart.getFullYear(), monthStart.getMonth(), endDay, 18, 0, 0)
+
+    list.push({
+      id: `BILL${year}${String(month).padStart(2, "0")}${String(weekIndex).padStart(2, "0")}`,
+      period: `${monthLabel}第${weekIndex}周（${fmt(startDay)}~${fmt(endDay)}）`,
+      orderCount,
+      billAmount,
+      supplierSettleAmount: billAmount,
+      generateTime: `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, "0")}-${String(endDate.getDate()).padStart(2, "0")} 18:00`,
+    })
+
+    weekIndex += 1
   }
 
-  const filteredBills = bills.filter((bill) => {
-    if (statusFilter === "all") return true
-    if (statusFilter === "pending") return bill.status === "待核对"
-    if (statusFilter === "confirmed") return bill.status === "已核对"
-    return true
-  })
+  return list
+}
+
+export default function SupplierFinance() {
+  const currentMonth = getCurrentMonth()
+  const [search, setSearch] = useState("")
+  const [month, setMonth] = useState(currentMonth)
+  const [selectedBill, setSelectedBill] = useState<Bill | null>(null)
+
+  const filteredBills = useMemo(() => {
+    const weeklyBills = buildWeeklyBills(month)
+    const keyword = search.trim().toLowerCase()
+    return weeklyBills.filter((bill) => {
+      const keywordMatched = !keyword || `${bill.id}${bill.period}`.toLowerCase().includes(keyword)
+      return keywordMatched
+    })
+  }, [search, month])
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[#1F1A1A]">财务对账</h1>
-          <p className="text-muted-foreground">查看每月结算账单，核对订单金额及佣金</p>
+          <p className="text-muted-foreground">按月查看账单记录，系统每周生成一次账单</p>
         </div>
         <Button variant="outline" size="sm">
           <Download className="mr-2 h-4 w-4" />
@@ -119,58 +93,22 @@ export default function SupplierFinance() {
         </Button>
       </div>
 
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-        <Card className="border-none shadow-sm">
-          <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-[#C82829]">¥84,768.50</div>
-            <div className="text-sm text-[#8F8787]">本月应结金额</div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-[#4CAF50]">856</div>
-            <div className="text-sm text-[#8F8787]">本月成交订单</div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-[#2196F3]">¥4,461.50</div>
-            <div className="text-sm text-[#8F8787]">本月佣金</div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-[#F6A018]">1</div>
-            <div className="text-sm text-[#8F8787]">待核对账单</div>
-          </CardContent>
-        </Card>
-      </div>
-
       <Card className="border-none shadow-sm">
         <CardContent className="p-4">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="relative flex-1 min-w-[240px]">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-[#5C5454]">账单月份</span>
+              <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="h-10 w-[180px]" />
+            </div>
+            <div className="relative min-w-[220px] flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8F8787]" />
               <Input
                 placeholder="账单编号/结算周期"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-10"
+                className="h-10 pl-9"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px] h-10">
-                <SelectValue placeholder="账单状态" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部状态</SelectItem>
-                <SelectItem value="pending">待核对</SelectItem>
-                <SelectItem value="confirmed">已核对</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button size="sm" className="h-10 bg-[#C82829] hover:bg-[#B22222]">
-              筛选
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -183,10 +121,8 @@ export default function SupplierFinance() {
                 <TableHead className="w-[140px]">账单编号</TableHead>
                 <TableHead className="w-[120px]">结算周期</TableHead>
                 <TableHead className="w-[100px]">订单数</TableHead>
-                <TableHead className="w-[120px]">订单金额</TableHead>
-                <TableHead className="w-[100px]">佣金</TableHead>
-                <TableHead className="w-[120px]">应结金额</TableHead>
-                <TableHead className="w-[100px]">状态</TableHead>
+                <TableHead className="w-[140px]">账单金额</TableHead>
+                <TableHead className="w-[150px]">供应商应结金额</TableHead>
                 <TableHead className="w-[160px]">生成时间</TableHead>
                 <TableHead className="w-[120px] text-right">操作</TableHead>
               </TableRow>
@@ -197,23 +133,14 @@ export default function SupplierFinance() {
                   <TableCell className="font-mono text-sm">{bill.id}</TableCell>
                   <TableCell className="font-medium">{bill.period}</TableCell>
                   <TableCell className="text-center">{bill.orderCount}</TableCell>
-                  <TableCell className="font-medium text-[#1F1A1A]">{bill.amount}</TableCell>
-                  <TableCell className="text-[#8F8787]">-{bill.commission}</TableCell>
-                  <TableCell className="font-bold text-[#C82829]">{bill.netAmount}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={bill.statusVariant}
-                      className={getStatusBadgeClass(bill.statusVariant)}
-                    >
-                      {bill.status}
-                    </Badge>
-                  </TableCell>
+                  <TableCell className="font-bold text-[#1F1A1A]">{money(bill.billAmount)}</TableCell>
+                  <TableCell className="font-bold text-[#C82829]">{money(bill.supplierSettleAmount)}</TableCell>
                   <TableCell className="text-[#8F8787]">{bill.generateTime}</TableCell>
                   <TableCell className="text-right">
                     <Button
-                      variant="ghost"
                       size="sm"
-                      className="text-[#C82829] hover:text-[#B22222] hover:bg-[#FFF3F3]"
+                      variant="outline"
+                      className="border-[#E4DDDD] text-[#4A4444] hover:bg-[#FFF3F3] hover:text-[#C82829]"
                       onClick={() => setSelectedBill(bill)}
                     >
                       详情
@@ -227,63 +154,58 @@ export default function SupplierFinance() {
       </Card>
 
       <Dialog open={!!selectedBill} onOpenChange={() => setSelectedBill(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>账单详情</DialogTitle>
+        <DialogContent className="flex h-[88vh] w-[min(1200px,calc(100vw-64px))] max-w-none sm:max-w-none flex-col gap-0 overflow-hidden p-0">
+          <DialogHeader className="shrink-0 border-b px-6 py-4 pr-12">
+            <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
+              <Wallet className="h-5 w-5 text-[#C82829]" />
+              账单详情
+            </DialogTitle>
           </DialogHeader>
           {selectedBill && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="p-4 bg-[#F9F8F7] rounded-xl">
-                  <div className="text-xs text-[#8F8787] mb-1">账单编号</div>
+            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-5">
+              <div className="grid gap-4 rounded-xl bg-[#F9F8F7] p-4 md:grid-cols-2">
+                <div>
+                  <div className="mb-1 text-xs text-[#8F8787]">账单编号</div>
                   <div className="font-mono font-medium">{selectedBill.id}</div>
                 </div>
-                <div className="p-4 bg-[#F9F8F7] rounded-xl">
-                  <div className="text-xs text-[#8F8787] mb-1">结算周期</div>
+                <div>
+                  <div className="mb-1 text-xs text-[#8F8787]">结算周期</div>
                   <div className="font-medium">{selectedBill.period}</div>
                 </div>
-                <div className="p-4 bg-[#F9F8F7] rounded-xl">
-                  <div className="text-xs text-[#8F8787] mb-1">账单状态</div>
-                  <Badge
-                    variant={selectedBill.statusVariant}
-                    className={getStatusBadgeClass(selectedBill.statusVariant)}
-                  >
-                    {selectedBill.status}
-                  </Badge>
+                <div>
+                  <div className="mb-1 text-xs text-[#8F8787]">生成时间</div>
+                  <div className="font-medium">{selectedBill.generateTime}</div>
                 </div>
               </div>
 
-              <div className="p-4 bg-[#FFF3F3] rounded-xl">
-                <div className="text-xs text-[#8F8787] mb-3">金额汇总</div>
-                <div className="grid grid-cols-4 gap-4">
+              <div className="border-t border-[#EFE8E8] pt-5">
+                <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F1A1A]">
+                  <Wallet className="h-4 w-4 text-[#C82829]" />
+                  金额汇总
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="text-sm text-[#8F8787]">成交订单数</div>
                     <div className="text-xl font-bold text-[#1F1A1A]">{selectedBill.orderCount}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-[#8F8787]">订单金额</div>
-                    <div className="text-xl font-bold text-[#1F1A1A]">{selectedBill.amount}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-[#8F8787]">平台佣金</div>
-                    <div className="text-xl font-bold text-[#C82829]">-{selectedBill.commission}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-[#8F8787]">应结金额</div>
-                    <div className="text-xl font-bold text-[#C82829]">{selectedBill.netAmount}</div>
+                    <div className="text-sm text-[#8F8787]">账单金额</div>
+                    <div className="text-xl font-bold text-[#1F1A1A]">{money(selectedBill.billAmount)}</div>
                   </div>
                 </div>
               </div>
 
-              <div>
-                <div className="text-sm font-medium text-[#1F1A1A] mb-2">订单明细</div>
+              <div className="border-t border-[#EFE8E8] pt-5">
+                <div className="mb-3 flex items-center gap-2 text-lg font-semibold text-[#1F1A1A]">
+                  <Circle className="h-2.5 w-2.5 fill-[#C82829] text-[#C82829]" />
+                  订单明细
+                </div>
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-[#F9F8F7]">
                       <TableHead>订单编号</TableHead>
                       <TableHead>商品名称</TableHead>
                       <TableHead className="text-right">金额</TableHead>
-                      <TableHead className="text-right">状态</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -291,42 +213,14 @@ export default function SupplierFinance() {
                       <TableRow key={order.id}>
                         <TableCell className="font-mono text-sm">{order.id}</TableCell>
                         <TableCell>{order.product}</TableCell>
-                        <TableCell className="text-right font-medium text-[#C82829]">
-                          {order.amount}
-                        </TableCell>
-                        <TableCell className="text-right text-[#8F8787]">{order.status}</TableCell>
+                        <TableCell className="text-right font-medium text-[#C82829]">{order.amount}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
-
-              {selectedBill.status === "待核对" && (
-                <div className="flex items-start gap-2 p-3 bg-[#E3F2FD] rounded-lg text-sm text-[#1976D2]">
-                  <Calendar className="h-4 w-4 mt-0.5 shrink-0" />
-                  <span>请仔细核对账单金额，如有疑问请联系平台客服。确认后将进入结算流程。</span>
-                </div>
-              )}
             </div>
           )}
-          <DialogFooter>
-            {selectedBill?.status === "待核对" && (
-              <>
-                <Button variant="outline" onClick={() => setSelectedBill(null)}>
-                  取消
-                </Button>
-                <Button className="bg-[#C82829] hover:bg-[#B22222]">
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  确认账单
-                </Button>
-              </>
-            )}
-            {selectedBill?.status === "已核对" && (
-              <Button variant="outline" onClick={() => setSelectedBill(null)}>
-                关闭
-              </Button>
-            )}
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

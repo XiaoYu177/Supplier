@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>故宫文创旗舰店供应商后台 - 登录</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      color: #241f1f;
+      background: linear-gradient(135deg, #f9f8f7 0%, #fff3f3 50%, #f9f8f7 100%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .shell {
+      width: min(980px, 100%);
+      min-height: 600px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+      box-shadow: 0 24px 80px rgba(42, 21, 21, 0.18);
+      overflow: hidden;
+    }
+    .brand {
+      position: relative;
+      padding: 48px;
+      color: #fff;
+      background: linear-gradient(135deg, #c82829 0%, #a82020 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 48px;
+    }
+    .brand::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .brand > * { position: relative; z-index: 1; }
+    .logo {
+      width: 58px;
+      height: 58px;
+      border: 1px solid rgba(255,255,255,0.42);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.16);
+    }
+    .brand h1 {
+      margin-top: 24px;
+      font-size: clamp(30px, 4vw, 44px);
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+    .brand p {
+      max-width: 430px;
+      margin-top: 18px;
+      color: rgba(255,255,255,0.84);
+      line-height: 1.8;
+      font-size: 15px;
+    }
+    .panel {
+      padding: 52px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #fff;
+    }
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #fff3f3;
+      color: #c82829;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .panel h2 {
+      font-size: 28px;
+      line-height: 1.25;
+      margin-bottom: 10px;
+    }
+    .panel .hint {
+      color: #6d6565;
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .form {
+      display: grid;
+      gap: 18px;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    input {
+      width: 100%;
+      height: 48px;
+      border: 1px solid #e6dddd;
+      border-radius: 8px;
+      padding: 0 14px;
+      color: #241f1f;
+      font-size: 15px;
+      outline: none;
+      background: #fff;
+    }
+    input:focus {
+      border-color: #c82829;
+      box-shadow: 0 0 0 3px rgba(200, 40, 41, 0.12);
+    }
+    .code-row {
+      display: grid;
+      grid-template-columns: 1fr 128px;
+      gap: 12px;
+    }
+    button {
+      height: 48px;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .ghost {
+      border: 1px solid #e6dddd;
+      background: #fff8f8;
+      color: #c82829;
+    }
+    .primary {
+      color: #fff;
+      background: linear-gradient(135deg, #c82829, #8b0000);
+      box-shadow: 0 12px 28px rgba(200, 40, 41, 0.24);
+    }
+    button:hover { transform: translateY(-1px); }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .62;
+      transform: none;
+    }
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      min-width: 220px;
+      max-width: calc(100vw - 44px);
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #202020;
+      color: #fff;
+      line-height: 1.5;
+      font-size: 14px;
+      box-shadow: 0 12px 32px rgba(0,0,0,.22);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all .24s ease;
+      z-index: 10;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .toast.error {
+      background: #b22222;
+    }
+    @media (max-width: 780px) {
+      .shell { grid-template-columns: 1fr; }
+      .brand { padding: 34px; min-height: 320px; }
+      .panel { padding: 34px 24px; }
+      .code-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="brand">
+      <div>
+        <div class="logo">宫</div>
+        <h1>故宫文创旗舰店<br>供应商后台</h1>
+        <p>供应商发货、订单查看与财务对账工作台。</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <span class="eyebrow">SUPPLIER LOGIN</span>
+      <h2>供应商管理后台</h2>
+      <p class="hint">请输入已绑定的供应商手机号。</p>
+
+      <form class="form" id="loginForm">
+        <div>
+          <label for="phone">手机号</label>
+          <input id="phone" type="tel" inputmode="numeric" maxlength="11" placeholder="请输入 11 位手机号" autocomplete="tel">
+        </div>
+        <div>
+          <label for="code">验证码</label>
+          <div class="code-row">
+            <input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="请输入验证码">
+            <button class="ghost" type="button" id="sendCode">获取验证码</button>
+          </div>
+        </div>
+        <button class="primary" type="submit">进入后台</button>
+      </form>
+    </section>
+  </main>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const phoneInput = document.getElementById("phone");
+    const codeInput = document.getElementById("code");
+    const toast = document.getElementById("toast");
+    const sendCode = document.getElementById("sendCode");
+    let seconds = 0;
+    let timer = null;
+
+    function showToast(text, isError = false) {
+      toast.textContent = text;
+      toast.classList.toggle("error", isError);
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2200);
+    }
+
+    sendCode.addEventListener("click", () => {
+      if (!phoneInput.value.trim()) {
+        showToast("请输入手机号。", true);
+        phoneInput.focus();
+        return;
+      }
+      seconds = 60;
+      sendCode.disabled = true;
+      showToast(`验证码已发送至 ${phoneInput.value.trim()}。`);
+      timer = setInterval(() => {
+        seconds -= 1;
+        sendCode.textContent = seconds > 0 ? `${seconds}s 后重发` : "获取验证码";
+        if (seconds <= 0) {
+          clearInterval(timer);
+          sendCode.disabled = false;
+        }
+      }, 1000);
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!phoneInput.value.trim()) {
+        showToast("请输入手机号。", true);
+        return;
+      }
+      if (!codeInput.value.trim()) {
+        showToast("请输入验证码。", true);
+        return;
+      }
+      localStorage.setItem("supplierLoggedIn", "true");
+      localStorage.setItem("supplierPhone", phoneInput.value.trim());
+      showToast("登录成功，正在进入供应商后台。");
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 500);
+    });
+  </script>
+</body>
+</html>

@@ -1,194 +1,101 @@
-import * as React from "react"
-import { Link, useLocation } from "react-router-dom"
-import {
-  LayoutDashboard,
-  Package,
-  Truck,
-  RefreshCcw,
-  Wallet,
-  Store,
-  ChevronRight,
-  LogOut,
-  User,
-} from "lucide-react"
+import type { ReactNode } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { Grid3X3, PackageSearch, Truck, RefreshCcw, Wallet, Store, LogOut } from "lucide-react"
 
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+import { useAuth } from "../../context/AuthContext"
 
-const supplierMenuItems = [
-  {
-    title: "工作台",
-    icon: LayoutDashboard,
-    url: "/supplier",
-  },
-  {
-    title: "订单管理",
-    icon: Package,
-    url: "/supplier/orders",
-  },
-  {
-    title: "打包发货",
-    icon: Truck,
-    url: "/supplier/shipping",
-  },
-  {
-    title: "售后记录",
-    icon: RefreshCcw,
-    url: "/supplier/refunds",
-  },
-  {
-    title: "财务对账",
-    icon: Wallet,
-    url: "/supplier/finance",
-  },
+const menuItems = [
+  { title: "工作台", path: "/supplier", icon: Grid3X3 },
+  { title: "订单管理", path: "/supplier/orders", icon: PackageSearch },
+  { title: "打包发货", path: "/supplier/shipping", icon: Truck },
+  { title: "售后记录", path: "/supplier/refunds", icon: RefreshCcw },
+  { title: "财务对账", path: "/supplier/finance", icon: Wallet },
 ]
 
-export function SupplierLayout({ children }: { children: React.ReactNode }) {
-  const location = useLocation()
-  const pathSegments = location.pathname.split("/").filter(Boolean)
+function isActive(pathname: string, target: string) {
+  if (target === "/supplier") {
+    return pathname === "/supplier" || pathname === "/supplier/"
+  }
+  return pathname.startsWith(target)
+}
 
-  const getLabel = (segment: string) => {
-    const labels: Record<string, string> = {
-      supplier: "供应商业务中心",
-      orders: "订单管理",
-      shipping: "打包发货",
-      refunds: "售后记录",
-      finance: "财务对账",
-    }
-    return labels[segment] || segment
+export function SupplierLayout({ children }: { children: ReactNode }) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    navigate("/supplier-login", { replace: true })
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar variant="inset" className="w-[260px] border-r border-sidebar-border">
-        <SidebarHeader className="p-6 border-b border-sidebar-border">
-          <Link to="/supplier" className="flex items-center gap-3">
-            <div className="bg-[#C82829] text-white p-2 rounded-xl shadow-md">
-              <Store className="w-6 h-6" />
+    <div className="min-h-screen w-full bg-[#f5f5f5] text-[#1f1a1a]">
+      <div className="flex min-h-screen w-full">
+        <aside className="sticky top-0 flex h-screen w-[260px] shrink-0 self-start flex-col border-r border-[#e4dddd] bg-[#f8f8f8]">
+          <div className="border-b border-[#e4dddd] px-6 py-6">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-[#c82829] text-white">
+                <Store className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="truncate text-lg font-semibold leading-none">故宫文创旗舰店</h1>
+                <p className="mt-1 truncate text-sm text-[#5f5b5b]">供应商管理后台</p>
+              </div>
             </div>
-            <div>
-              <span className="text-lg font-bold text-[#1F1A1A] tracking-tight">供应商后台</span>
-              <div className="text-xs text-[#8F8787]">北京礼物 · 数据隔离</div>
-            </div>
-          </Link>
-        </SidebarHeader>
+          </div>
 
-        <SidebarContent className="p-4">
-          <SidebarMenu>
-            {supplierMenuItems.map((item) => {
-              const isActive = location.pathname === item.url
+          <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-5">
+            {menuItems.map((item) => {
+              const active = isActive(location.pathname, item.path)
               return (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive}
-                    className={`h-11 px-4 rounded-xl ${
-                      isActive
-                        ? "bg-[#FFF3F3] text-[#C82829] font-medium"
-                        : "hover:bg-[#F1EEEE] text-[#5C5454]"
-                    }`}
-                  >
-                    <Link to={item.url}>
-                      <item.icon className="w-5 h-5" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex h-11 items-center gap-3 rounded-lg px-3 text-base font-semibold leading-none whitespace-nowrap transition ${
+                    active
+                      ? "bg-[#fff1f1] text-[#c82829]"
+                      : "text-[#3f3a3a] hover:bg-[#f0ebeb] hover:text-[#c82829]"
+                  }`}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className="truncate">{item.title}</span>
+                </Link>
               )
             })}
-          </SidebarMenu>
-        </SidebarContent>
+          </nav>
 
-        <SidebarFooter className="p-4 border-t border-sidebar-border">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuButton className="h-14 px-4 rounded-xl hover:bg-[#F1EEEE]">
-                <Avatar className="h-9 w-9 rounded-lg bg-gradient-to-br from-[#C82829] to-[#8B0000]">
-                  <AvatarFallback className="bg-transparent text-white font-bold">
-                    故
-                  </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight ml-2">
-                  <span className="truncate font-bold text-[#1F1A1A]">故宫文创旗舰店</span>
-                  <span className="truncate text-xs text-[#8F8787]">供应商管理员</span>
-                </div>
-              </SidebarMenuButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="start" className="w-[--radix-dropdown-menu-trigger-width]">
-              <DropdownMenuItem>
-                <Store className="mr-2 h-4 w-4" />
-                店铺信息
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                个人中心
-              </DropdownMenuItem>
-              <Separator className="my-1" />
-              <DropdownMenuItem className="text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                退出登录
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </SidebarFooter>
-      </Sidebar>
+          <div className="border-t border-[#e4dddd] p-4">
+            <div className="mb-3 flex items-center gap-3 rounded-lg bg-white px-3 py-3">
+              <div className="grid h-10 w-10 place-items-center rounded-lg bg-[#b51617] text-white">
+                故
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">故宫文创旗舰店</p>
+                <p className="truncate text-xs text-[#6f6b6b]">供应商管理员</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#e1d5d5] bg-white text-sm font-semibold text-[#4a4444] transition hover:border-[#c82829] hover:text-[#c82829]"
+            >
+              <LogOut className="h-4 w-4" />
+              退出登录
+            </button>
+          </div>
+        </aside>
 
-      <div className="flex-1 flex flex-col">
-        <header className="h-16 shrink-0 items-center gap-2 border-b px-6 flex">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/supplier" className="text-[#5C5454] hover:text-[#C82829]">
-                  京彩游
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              {pathSegments.map((segment, index) => (
-                <React.Fragment key={segment}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    {index === pathSegments.length - 1 ? (
-                      <BreadcrumbPage className="text-[#1F1A1A] font-medium">
-                        {getLabel(segment)}
-                      </BreadcrumbPage>
-                    ) : (
-                      <BreadcrumbLink
-                        href={`/${pathSegments.slice(0, index + 1).join("/")}`}
-                        className="text-[#5C5454] hover:text-[#C82829]"
-                      >
-                        {getLabel(segment)}
-                      </BreadcrumbLink>
-                    )}
-                  </BreadcrumbItem>
-                </React.Fragment>
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header>
-
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <div className="flex h-screen min-w-0 flex-1 flex-col">
+          <header className="h-16 border-b border-[#e4dddd] bg-[#f8f8f8] px-6">
+            <div className="flex h-full items-center text-sm text-[#474242]">
+              <span>京彩游</span>
+              <span className="mx-2 text-[#8a8585]">›</span>
+              <span>供应商业务中心</span>
+            </div>
+          </header>
+          <main className="min-w-0 flex-1 overflow-x-auto overflow-y-auto p-6">{children}</main>
+        </div>
       </div>
     </div>
   )

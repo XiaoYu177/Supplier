@@ -1,15 +1,6 @@
 import { motion } from "motion/react"
 import { Link } from "react-router-dom"
-import {
-  Package,
-  Truck,
-  RefreshCcw,
-  Wallet,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
-  ChevronRight,
-} from "lucide-react"
+import { Package, Truck, RefreshCcw, Wallet, ArrowUpRight, ArrowDownRight, ChevronRight } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -54,30 +45,6 @@ const stats = [
     href: "/supplier/finance",
     color: "#C82829",
     bgColor: "#FFF3F3",
-  },
-]
-
-const pendingItems = [
-  {
-    title: "待发货订单",
-    count: 128,
-    href: "/supplier/shipping",
-    bgColor: "#FFF3E0",
-    iconColor: "#F6A018",
-  },
-  {
-    title: "待退货退款确认",
-    count: 5,
-    href: "/supplier/refunds",
-    bgColor: "#E8F5E9",
-    iconColor: "#4CAF50",
-  },
-  {
-    title: "待核对账单",
-    count: 1,
-    href: "/supplier/finance",
-    bgColor: "#E3F2FD",
-    iconColor: "#2196F3",
   },
 ]
 
@@ -173,77 +140,45 @@ export default function SupplierDashboard() {
         ))}
       </div>
 
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
-        <Card className="lg:col-span-2 border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">最近订单</CardTitle>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/supplier/orders" className="text-[#C82829] hover:text-[#B22222]">
-                查看全部
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-[#F9F8F7] hover:bg-[#F1EEEE] transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#FFF3F3] flex items-center justify-center">
-                      <Package className="h-5 w-5 text-[#C82829]" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-[#1F1A1A]">{order.product}</div>
-                      <div className="text-xs text-[#8F8787]">
-                        {order.id} · x{order.qty}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-[#C82829]">{order.amount}</div>
-                    <div
-                      className="text-xs font-medium"
-                      style={{ color: order.statusColor }}
-                    >
-                      {order.status}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">⏰ 待处理事项</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {pendingItems.map((item) => (
-              <Link
-                key={item.title}
-                to={item.href}
-                className="flex items-center justify-between p-4 rounded-xl hover:opacity-90 transition-opacity"
-                style={{ backgroundColor: item.bgColor }}
+      <Card className="border-none shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">最近订单</CardTitle>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/supplier/orders" className="inline-flex items-center whitespace-nowrap text-[#C82829] hover:text-[#B22222]">
+              查看全部
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {recentOrders.map((order) => (
+              <div
+                key={order.id}
+                className="flex items-center justify-between rounded-xl bg-[#F9F8F7] p-3 transition-colors hover:bg-[#F1EEEE]"
               >
                 <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5" style={{ color: item.iconColor }} />
-                  <span className="font-medium text-[#1F1A1A]">{item.title}</span>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FFF3F3]">
+                    <Package className="h-5 w-5 text-[#C82829]" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-[#1F1A1A]">{order.product}</div>
+                    <div className="text-xs text-[#8F8787]">
+                      {order.id} · x{order.qty}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold" style={{ color: item.iconColor }}>
-                    {item.count}
-                  </span>
-                  <ChevronRight className="h-4 w-4 text-[#8F8787]" />
+                <div className="text-right">
+                  <div className="text-sm font-bold text-[#C82829]">{order.amount}</div>
+                  <div className="text-xs font-medium" style={{ color: order.statusColor }}>
+                    {order.status}
+                  </div>
                 </div>
-              </Link>
+              </div>
             ))}
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

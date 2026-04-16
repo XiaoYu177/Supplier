@@ -103,8 +103,12 @@ function AppRoutes() {
         element={isAuthenticated ? <SupplierApp /> : <Navigate to="/supplier-login" replace />}
       />
       <Route
+        path="/"
+        element={isAuthenticated ? <Navigate to="/supplier" replace /> : <Navigate to="/supplier-login" replace />}
+      />
+      <Route
         path="*"
-        element={isAuthenticated ? <ProtectedApp /> : <Navigate to="/login" replace />}
+        element={<Navigate to={isAuthenticated ? "/supplier" : "/supplier-login"} replace />}
       />
     </Routes>
   )
